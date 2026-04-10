@@ -84,7 +84,16 @@ references:
 ./build.sh
 ```
 
-Creates `docs-graph.plugin` at the repo root. The `.plugin` file is gitignored.
+Creates `docs-graph.zip` at the repo root. The `.zip` file is gitignored.
+
+## Versioning
+
+When making meaningful changes (new features, bug fixes, skill improvements), bump the `version` field in `.claude-plugin/plugin.json` before committing. Use semver:
+- Patch (0.1.0 → 0.1.1): bug fixes, small tweaks
+- Minor (0.1.0 → 0.2.0): new features, new skills
+- Major (0.1.0 → 1.0.0): breaking changes to folder structure or frontmatter format
+
+Users who installed via marketplace sync need to re-sync to pick up changes. The version number helps them see when something new is available.
 
 ## Key files to know when making changes
 

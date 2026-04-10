@@ -27,6 +27,15 @@ A Claude Cowork plugin that turns a folder of markdown documents into an interac
 
 Ask Claude to "rebuild the graph" after adding or editing documents.
 
+## Updating
+
+To get the latest version after an update:
+1. Open the sidebar and click **Customize**
+2. Click the **+** button next to "Personal plugins"
+3. Select **Add marketplace** and re-sync `Monte9/docs-graph`
+
+The version number on the plugin page shows which version you have installed.
+
 ## How it's organized
 
 ```
