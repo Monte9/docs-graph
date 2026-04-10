@@ -1,0 +1,36 @@
+name: Build and Release Plugin
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build plugin
+        run: |
+          zip -r docs-graph.plugin . \
+            -x ".git/*" ".gitignore" "*.DS_Store" "*.plugin" \
+            "build.sh" "AGENTS.md" ".github/*"
+
+      - name: Get short SHA
+        id: sha
+        run: echo "short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ steps.sha.outputs.short }}
+          name: Build ${{ steps.sha.outputs.short }}
+          body: |
+            Auto-built from commit ${{ github.sha }}.
+
+            Download `docs-graph.plugin` below and open it in Claude Cowork to install.
+          files: docs-graph.plugin
+          make_latest: true

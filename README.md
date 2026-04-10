@@ -4,7 +4,8 @@ A Claude Cowork plugin that turns a folder of markdown documents into an interac
 
 ## Install
 
-Open `docs-graph.plugin` in Claude Cowork. If you don't have the file, clone this repo and run `./build.sh` to generate it.
+1. [Download docs-graph.plugin](https://github.com/Monte9/docs-graph/releases/latest/download/docs-graph.plugin)
+2. Open the file — Claude Cowork will prompt you to install it
 
 ## Usage
 
