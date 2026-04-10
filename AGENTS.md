@@ -86,14 +86,39 @@ references:
 
 Creates `docs-graph.zip` at the repo root. The `.zip` file is gitignored.
 
-## Versioning
+## Commits and versioning
 
-When making meaningful changes (new features, bug fixes, skill improvements), bump the `version` field in `.claude-plugin/plugin.json` before committing. Use semver:
-- Patch (0.1.0 → 0.1.1): bug fixes, small tweaks
-- Minor (0.1.0 → 0.2.0): new features, new skills
-- Major (0.1.0 → 1.0.0): breaking changes to folder structure or frontmatter format
+This repo uses **conventional commits**. Every commit message must follow:
 
-Users who installed via marketplace sync need to re-sync to pick up changes. The version number helps them see when something new is available.
+```
+<type>(<scope>): <description>
+```
+
+Types:
+- `fix` — bug fix → bumps **patch** (1.0.0 → 1.0.1)
+- `feat` — new feature → bumps **minor** (1.0.0 → 1.1.0)
+- `feat!` or `BREAKING CHANGE:` — breaking change → bumps **major** (1.0.0 → 2.0.0)
+- `docs` — documentation only (no version bump)
+- `chore` — maintenance, CI, tooling (no version bump)
+- `refactor` — code restructuring (no version bump)
+- `style` — formatting, whitespace (no version bump)
+
+Scopes: `build-graph`, `create-doc`, `viewer`, `build`, `ci`
+
+Examples:
+```
+fix(viewer): prevent node overlap on chained references
+feat(create-doc): add support for custom frontmatter fields
+feat(build-graph)!: change docs/ to documents/ folder name
+docs: update install instructions in README
+chore(ci): fix release workflow permissions
+```
+
+When a commit bumps the version (`fix` or `feat`), also update:
+- `.claude-plugin/plugin.json` → `version` field
+- `.claude-plugin/marketplace.json` → `version` field in the plugin entry
+
+Users who installed via marketplace sync need to re-sync to pick up changes.
 
 ## Key files to know when making changes
 
