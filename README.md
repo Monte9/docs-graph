@@ -5,13 +5,18 @@ A Claude Cowork plugin that turns a folder of markdown documents into an interac
 ## Install
 
 **Option A — From GitHub (recommended):**
-1. In Claude Cowork, go to Settings → Plugins → Add marketplace
-2. Enter `Monte9/docs-graph` and click Sync
+1. In Claude Cowork, open the sidebar and click **Customize**
+2. Click the **+** button next to "Personal plugins"
+3. Select **Add marketplace**
+4. Enter `Monte9/docs-graph` and click **Sync**
+5. Go to **Plugins** in the Directory, switch to the **Personal** tab
+6. Find "Docs graph" and click to install it
 
 **Option B — Manual upload:**
 1. [Download docs-graph.zip](https://github.com/Monte9/docs-graph/releases/latest/download/docs-graph.zip)
-2. In Claude Cowork, go to Settings → Plugins → Upload local plugin
-3. Upload the `.zip` file
+2. In Claude Cowork, open the sidebar and click **Customize**
+3. Click the **+** button next to "Personal plugins"
+4. Select **Upload plugin** and upload the `.zip` file
 
 ## Usage
 
