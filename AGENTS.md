@@ -71,12 +71,41 @@ references:
 
 `build.py` uses a simple line-based YAML parser (no PyYAML dependency). Keep frontmatter flat — no nested objects.
 
-## Development workflow
+## Local development
 
-1. Edit skill files or viewer code
-2. Test by running `python3 skills/build-graph/scripts/build.py /path/to/some/docs` against a folder with markdown files
-3. Run `./build.sh` to package into `docs-graph.plugin`
-4. The `.plugin` file is a zip — open it in Cowork to install
+For local dev, mount THIS repo folder (`~/Projects/docs-graph`) in Cowork. The skills are picked up directly from `skills/` — no need to install the plugin. You can edit skill files and scripts and changes take effect immediately.
+
+Run the setup script first to symlink your docs into the repo:
+
+```bash
+./setup.sh              # symlinks docs/ → ~/docs (default)
+./setup.sh ~/other/path # symlinks docs/ → custom path
+```
+
+After setup, the repo looks like:
+
+```
+docs-graph/                      ← mount this folder
+├── docs/ → ~/docs               ← symlink to your real docs (gitignored)
+├── _graph/                      ← graph output goes here (gitignored)
+│   ├── build.py
+│   └── index.html
+├── skills/                      ← edit these directly
+│   ├── build-graph/...
+│   └── create-doc/...
+└── ...
+```
+
+This means one folder for everything: source code, real content via symlink, and graph output. `docs/` and `_graph/` are both gitignored — only the plugin source gets committed.
+
+### Workflow
+
+1. Edit skill files or viewer code in `skills/`
+2. Use the `create-doc` skill to add test docs to `docs/`
+3. Use the `build-graph` skill to rebuild `_graph/` — or run directly: `python3 skills/build-graph/scripts/build.py`
+4. Open `_graph/index.html` in a browser to verify
+5. Commit changes to `skills/`, `AGENTS.md`, etc. (docs/ and _graph/ are gitignored)
+6. Push to main → GitHub Actions builds a release → users sync the plugin
 
 ## Packaging
 
