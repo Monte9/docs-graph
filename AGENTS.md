@@ -20,7 +20,7 @@ docs-graph/
 │   └── build-graph/
 │       ├── SKILL.md             # instructions for setting up/rebuilding the graph
 │       └── scripts/
-│           ├── build.py         # Python script that scans .md files and generates graph data
+│           ├── build.py         # Python script that scans docs/ and generates graph data
 │           └── index.html       # D3.js viewer template (data gets embedded by build.py)
 ├── README.md                    # human-facing docs
 ├── AGENTS.md                    # this file
@@ -28,9 +28,28 @@ docs-graph/
 └── .gitignore                   # excludes .plugin files and .DS_Store
 ```
 
+## How the folder layout works when installed
+
+When a user installs this plugin and mounts a folder, the expected layout is:
+
+```
+<root>/                    ← whatever folder the user mounts (e.g. "Rosebud")
+├── _graph/                ← graph viewer at the root level
+│   ├── build.py
+│   ├── index.html
+│   └── graph.json
+└── docs/                  ← all documents go in here
+    ├── 2026-03-01/
+    │   └── synthesis-kickoff.md
+    └── 2026-04-02/
+        └── analysis-review.md
+```
+
+`_graph/` and `docs/` are siblings at the root. `build.py` scans `docs/` by default (the sibling directory).
+
 ## How the graph viewer works
 
-`build.py` walks a folder of markdown files, parses YAML frontmatter (name, date, type, references), and embeds the resulting JSON into `index.html` between `// __GRAPH_DATA_START__` and `// __GRAPH_DATA_END__` markers. The HTML file uses D3.js to render a horizontal timeline with nodes per document and edges per reference.
+`build.py` walks `docs/`, parses YAML frontmatter (name, date, type, references), and embeds the resulting JSON into `index.html` between `// __GRAPH_DATA_START__` and `// __GRAPH_DATA_END__` markers. The HTML file uses D3.js to render a horizontal timeline with nodes per document and edges per reference.
 
 The viewer is entirely self-contained — one HTML file, no server, no build tools.
 
@@ -55,7 +74,7 @@ references:
 ## Development workflow
 
 1. Edit skill files or viewer code
-2. Test by running `python3 skills/build-graph/scripts/build.py /path/to/some/docs-folder` against a folder with markdown files
+2. Test by running `python3 skills/build-graph/scripts/build.py /path/to/some/docs` against a folder with markdown files
 3. Run `./build.sh` to package into `docs-graph.plugin`
 4. The `.plugin` file is a zip — open it in Cowork to install
 
@@ -65,7 +84,7 @@ references:
 ./build.sh
 ```
 
-This creates `docs-graph.plugin` at the repo root. The `.plugin` file is gitignored.
+Creates `docs-graph.plugin` at the repo root. The `.plugin` file is gitignored.
 
 ## Key files to know when making changes
 

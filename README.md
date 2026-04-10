@@ -8,12 +8,24 @@ Open `docs-graph.plugin` in Claude Cowork. If you don't have the file, clone thi
 
 ## Usage
 
-1. Select a folder where you keep (or want to keep) your documents
+1. Select a folder for your project (e.g. "Rosebud", "Q2 Planning", anything)
 2. Ask Claude to "set up the graph viewer"
 3. Write docs or ask Claude to create them for you
 4. Open `_graph/index.html` in your browser
 
 Ask Claude to "rebuild the graph" after adding or editing documents.
+
+## How it's organized
+
+```
+your-folder/
+├── _graph/           ← the viewer lives here (auto-generated)
+└── docs/             ← your documents go here
+    ├── 2026-03-01/
+    │   └── synthesis-kickoff.md
+    └── 2026-04-10/
+        └── analysis-review.md
+```
 
 ## Document format
 

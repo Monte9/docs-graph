@@ -5,29 +5,80 @@ description: "Set up and build an interactive graph visualization for a folder o
 
 # Build Graph
 
-Build and maintain an interactive graph visualization for any folder of interlinked markdown documents. The viewer renders documents as nodes on a timeline, with edges showing how documents reference each other (via a `references` field in YAML frontmatter). External URLs referenced by documents appear as separate nodes.
+Build and maintain an interactive graph visualization for interlinked markdown documents. The viewer renders documents as nodes on a timeline, with edges showing how documents reference each other (via a `references` field in YAML frontmatter). External URLs referenced by documents appear as separate nodes.
 
 The result is a single `index.html` file that can be opened in any browser — no server required.
 
+## Folder layout
+
+The graph viewer (`_graph/`) lives at the root of the user's mounted folder. Documents live in a `docs/` subdirectory:
+
+```
+<root>/                    ← the folder the user mounted
+├── _graph/                ← graph viewer lives here
+│   ├── build.py
+│   ├── index.html
+│   └── graph.json
+└── docs/                  ← all documents go here
+    ├── 2026-03-01/
+    │   └── synthesis-kickoff.md
+    └── 2026-04-02/
+        └── analysis-review.md
+```
+
+`build.py` scans the `docs/` sibling directory by default. Directories starting with `_` or `.` are skipped.
+
 ## When to use this skill
 
-- User wants to visualize a folder of markdown files as a graph
-- User wants to set up or rebuild the graph viewer (`_graph/`)
+- User wants to visualize their documents as a graph
+- User wants to set up the graph viewer for the first time
+- User says "rebuild the graph" or "update the graph"
 - User asks to see how their docs connect or reference each other
-- User mentions "rebuild the graph" or "update the graph"
 
-## How it works
+## Bootstrapping into a new folder
 
-The system has two parts:
+If the user's folder doesn't have `_graph/` and `docs/` yet, create them from the bundled scripts in this skill.
 
-1. **`build.py`** — a Python script that walks a folder tree, parses YAML frontmatter from every `.md` file, extracts references, and writes the data into `index.html`.
-2. **`index.html`** — a self-contained D3.js-powered viewer with a horizontal timeline layout, clickable nodes, a side panel with rendered markdown content, and zoom/pan navigation.
+### Step 1: Create the directories
 
-Both files live in a `_graph/` subdirectory inside the target markdown folder. The build script treats its parent directory as the document root.
+```bash
+mkdir -p <root>/_graph <root>/docs
+```
+
+### Step 2: Copy the scripts
+
+This skill bundles two files:
+
+- `scripts/build.py` — copy to `<root>/_graph/build.py`
+- `scripts/index.html` — copy to `<root>/_graph/index.html`
+
+Use the Read tool to read each file from this skill's `scripts/` directory, then use Write to place them in the target `_graph/` folder.
+
+### Step 3: Run the initial build
+
+```bash
+cd <root> && python3 _graph/build.py
+```
+
+This scans all `.md` files under `docs/`, extracts frontmatter, and embeds the graph data directly into `index.html`. The output tells you how many docs and references it found.
+
+### Step 4: Open it
+
+The user can open `_graph/index.html` directly in a browser. No server needed.
+
+## Rebuilding after changes
+
+Whenever documents are added, edited, or their frontmatter changes:
+
+```bash
+cd <root> && python3 _graph/build.py
+```
+
+The build is fast (pure Python, no dependencies) and idempotent.
 
 ## The frontmatter contract
 
-For a markdown file to appear in the graph, it should have YAML frontmatter at the top of the file. The frontmatter fields the graph understands are:
+For a markdown file to appear in the graph, it should have YAML frontmatter:
 
 ```yaml
 ---
@@ -44,98 +95,46 @@ references:
 Field details:
 
 - **name** (recommended): Display label in the graph. Falls back to the filename if missing.
-- **date** (recommended): Determines which timeline lane the node appears in. Documents with the same date share a lane. If missing, the document still appears but won't be placed on the timeline cleanly.
-- **type** (optional): Drives the node's color and icon. Built-in types and their colors: `synthesis` (blue), `analysis` (purple), `comments` (amber), `brief` (teal), `draft` (olive), `note` (gray). Any unknown type gets a default gray style. You can extend the type palette by editing the `TYPE_STYLES` object in index.html.
-- **description** (optional): Shown in tooltips and the side panel.
-- **references** (optional): A YAML list of URLs or relative file paths. Each reference becomes a directed edge in the graph. External URLs (http/https) are rendered as separate "external" nodes. Relative paths are matched against other documents in the folder by suffix (so `2026-04-02/my-doc.md` matches `project/2026-04-02/my-doc.md`).
+- **date** (recommended): Determines which timeline lane the node appears in. Documents with the same date share a lane.
+- **type** (optional): Drives the node's color and icon. Built-in types: `synthesis` (blue), `analysis` (purple), `comments` (amber), `brief` (teal), `draft` (olive), `note` (gray). Unknown types get default gray.
+- **description** (optional): Shown in the side panel.
+- **references** (optional): A YAML list of URLs or relative file paths. Each becomes a directed edge. External URLs are rendered as "external" nodes. Relative paths are matched by suffix.
 
-Files without frontmatter are still included — they're treated as type `note` with the filename as the name.
+Files without frontmatter are still included as type `note`.
 
-## Bootstrapping the viewer into a new folder
+## Multi-project support
 
-If the target folder doesn't have a `_graph/` directory yet, you need to create it from the bundled scripts in this skill.
+The viewer handles two layouts automatically:
 
-### Step 1: Create the directory
-
-```bash
-mkdir -p <target-folder>/_graph
+**Single-project** (date folders directly under `docs/`):
 ```
-
-### Step 2: Copy the scripts
-
-This skill bundles two files:
-
-- `scripts/build.py` — copy to `<target-folder>/_graph/build.py`
-- `scripts/index.html` — copy to `<target-folder>/_graph/index.html`
-
-Use the Read tool to read each file from this skill's `scripts/` directory, then use Write to place them in the target `_graph/` folder.
-
-### Step 3: Run the initial build
-
-```bash
-cd <target-folder> && python3 _graph/build.py
-```
-
-This scans all `.md` files, extracts frontmatter, and embeds the graph data directly into `index.html`. The output tells you how many docs and references it found.
-
-### Step 4: Open it
-
-The user can open `_graph/index.html` directly in a browser. No server needed — everything is self-contained in that one file.
-
-## Rebuilding after changes
-
-Whenever documents are added, edited, or their frontmatter changes, rebuild:
-
-```bash
-cd <target-folder> && python3 _graph/build.py
-```
-
-The build is fast (pure Python, no dependencies) and idempotent — it overwrites the embedded data in index.html each time.
-
-## Folder structure
-
-The viewer expects markdown files organized under the target folder. It handles two layouts automatically:
-
-**Single-project** (date folders at the top level):
-```
-my-docs/
-├── _graph/
-│   ├── build.py
-│   ├── index.html
-│   └── graph.json
+docs/
 ├── 2026-03-01/
 │   └── synthesis-kickoff.md
-├── 2026-04-02/
-│   └── analysis-review.md
-└── README.md          ← ignored (no frontmatter with date)
+└── 2026-04-02/
+    └── analysis-review.md
 ```
 
 **Multi-project** (project folders containing date folders):
 ```
-strategy/
-├── _graph/
+docs/
 ├── project-alpha/
-│   ├── 2026-03-01/
-│   │   └── brief-alpha-kickoff.md
-│   └── 2026-04-01/
-│       └── synthesis-alpha-q2.md
+│   └── 2026-03-01/
+│       └── brief-alpha-kickoff.md
 └── project-beta/
     └── 2026-03-15/
         └── analysis-beta-audit.md
 ```
 
-The build script detects which layout you have automatically. Directories starting with `_` or `.` are always skipped.
+## Customization
 
-## Customization notes
-
-The viewer is a single HTML file with inline CSS and JS. Common things people want to change:
-
-- **Add a new document type**: Find the `TYPE_STYLES` object in index.html and add an entry with `color`, `icon` (SVG path), and `label`.
-- **Change colors**: The CSS variables at the top of the `<style>` block control the overall palette (background, card colors, borders).
-- **Adjust spacing**: Layout constants like `COL_WIDTH`, `ROW_SPACING`, `EXT_NODE_W`, etc. are defined at the top of the `<script>` block.
+- **Add a document type**: Find the `TYPE_STYLES` object in index.html
+- **Change colors**: CSS variables in the `<style>` block
+- **Adjust spacing**: Layout constants at the top of the `<script>` block
 
 ## Troubleshooting
 
-- **"0 docs found"**: The build script skips directories starting with `_` or `.`. Make sure your markdown files are in regular subdirectories.
-- **Documents not linking**: References use suffix matching. A reference to `foo/bar.md` matches a node whose ID ends with `foo/bar.md`. Check that the reference path in frontmatter matches the actual file's relative path from the root.
-- **Blank viewer**: Open browser dev tools console. If there's a JS error about `GRAPH_DATA`, the build script didn't embed the data — rerun `python3 _graph/build.py`.
+- **"No docs/ folder found"**: Create `docs/` or pass a path: `python3 _graph/build.py /path/to/docs`
+- **"0 docs found"**: Make sure markdown files are inside `docs/`, not at the root level
+- **Documents not linking**: References use suffix matching — check that reference paths match actual file paths
+- **Blank viewer**: Check browser console for JS errors, then rerun `python3 _graph/build.py`

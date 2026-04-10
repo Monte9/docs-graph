@@ -1,25 +1,25 @@
 ---
 name: create-doc
-description: "Create a new document in the user's doc folder with the right format for the graph viewer. Use when the user asks to write a doc, add a synthesis/analysis/comments/note, capture notes, or otherwise add a markdown file to their folder. Also use when the user says 'create a doc', 'write a note', 'add a synthesis', 'capture this', or wants to save any structured markdown document. Regenerates the graph index after creation."
+description: "Create a new document in the user's docs folder with the right format for the graph viewer. Use when the user asks to write a doc, add a synthesis/analysis/comments/note, capture notes, or otherwise add a markdown file to their folder. Also use when the user says 'create a doc', 'write a note', 'add a synthesis', 'capture this', or wants to save any structured markdown document. Regenerates the graph index after creation."
 ---
 
 # Create Doc
 
-Create a new markdown document in the user's folder and regenerate the graph index so it shows up in the viewer.
+Create a new markdown document in the user's `docs/` folder and regenerate the graph index so it shows up in the viewer.
 
-## Where docs live
+## Folder layout
 
-The doc folder is whichever folder the user has mounted as their workspace. If it's not obvious which folder is the root (e.g., the mounted folder is a parent repo), ask the user to confirm the path. The general layout is:
+Documents live in a `docs/` subdirectory of the user's mounted folder:
 
 ```
-<doc-root>/
-├── _graph/              # graph viewer — do not put docs here
-│   ├── build.py         # rebuilds graph.json + index.html
-│   ├── graph.json
-│   └── index.html
-└── YYYY-MM-DD/          # one folder per day docs were written
-    └── <type>-<slug>.md
+<root>/                    ← the folder the user mounted
+├── _graph/                ← graph viewer (don't put docs here)
+└── docs/                  ← all documents go here
+    └── YYYY-MM-DD/
+        └── <type>-<slug>.md
 ```
+
+If `docs/` doesn't exist yet, create it.
 
 Docs are grouped by date. Inside a date folder, files are named `<type>-<short-slug>.md` — for example `synthesis-q2-strategy.md`, `analysis-pricing-review.md`, `comments-okr-feedback.md`.
 
@@ -38,7 +38,7 @@ If any of these are missing and can't be inferred from context, ask the user.
 
 ## Create the file
 
-Path: `<doc-root>/<YYYY-MM-DD>/<type>-<slug>.md`
+Path: `<root>/docs/<YYYY-MM-DD>/<type>-<slug>.md`
 
 Create the date folder if it doesn't already exist.
 
@@ -69,10 +69,10 @@ Write the body in normal markdown — headings, paragraphs, bullets are all fine
 
 ## Regenerate the graph
 
-After the file is written, check if `_graph/build.py` exists in the doc root. If it does, run:
+After the file is written, check if `_graph/build.py` exists at the root. If it does, run:
 
 ```bash
-cd <doc-root> && python3 _graph/build.py
+cd <root> && python3 _graph/build.py
 ```
 
 This rewrites `_graph/graph.json` and re-embeds the graph data into `_graph/index.html`. Confirm the output shows the expected doc count went up by one.

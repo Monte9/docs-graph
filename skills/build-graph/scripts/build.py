@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-Scans a strategy folder for .md files with YAML frontmatter,
+Scans a docs folder for .md files with YAML frontmatter,
 extracts metadata, and generates graph.json for the viewer.
 
 Usage:
-    python build.py                     # scans parent of _graph/
-    python build.py /path/to/strategy   # scans a specific root
+    python build.py                     # scans docs/ sibling of _graph/
+    python build.py /path/to/docs       # scans a specific folder
 
 Project grouping:
     - If run from inside a project folder (e.g., rosebud/_graph/),
@@ -189,8 +189,14 @@ def main():
     if len(sys.argv) > 1:
         root = sys.argv[1]
     else:
+        # _graph/ lives at the project root; docs/ is a sibling directory
         script_dir = os.path.dirname(os.path.abspath(__file__))
-        root = os.path.dirname(script_dir)
+        project_root = os.path.dirname(script_dir)
+        root = os.path.join(project_root, 'docs')
+        if not os.path.isdir(root):
+            print(f"No docs/ folder found at {root}")
+            print("Create it or pass a path: python build.py /path/to/docs")
+            sys.exit(1)
 
     print(f"Scanning: {root}")
     graph = scan_folder(root)
