@@ -126,13 +126,16 @@ def scan_folder(root_path):
                 project = root_name
 
             meta, body = parse_frontmatter(filepath)
+
+            # Only include files that have all three required fields:
+            # name, date, and type. This filters out random READMEs,
+            # changelogs, and other .md files that weren't created
+            # with the docs-graph frontmatter format.
             if meta is None:
-                meta = {
-                    'name': fname.replace('.md', '').replace('-', ' ').title(),
-                    'type': 'note',
-                    'description': '',
-                    'references': []
-                }
+                continue
+            required = ('name', 'date', 'type')
+            if not all(meta.get(k) for k in required):
+                continue
 
             node_id = rel_path
             node = {
@@ -189,14 +192,12 @@ def main():
     if len(sys.argv) > 1:
         root = sys.argv[1]
     else:
-        # _graph/ lives at the project root; docs/ is a sibling directory
+        # _graph/ lives at the project root; prefer docs/ if it exists,
+        # otherwise scan the whole root (frontmatter filter keeps it clean)
         script_dir = os.path.dirname(os.path.abspath(__file__))
         project_root = os.path.dirname(script_dir)
-        root = os.path.join(project_root, 'docs')
-        if not os.path.isdir(root):
-            print(f"No docs/ folder found at {root}")
-            print("Create it or pass a path: python build.py /path/to/docs")
-            sys.exit(1)
+        docs_dir = os.path.join(project_root, 'docs')
+        root = docs_dir if os.path.isdir(docs_dir) else project_root
 
     print(f"Scanning: {root}")
     graph = scan_folder(root)
