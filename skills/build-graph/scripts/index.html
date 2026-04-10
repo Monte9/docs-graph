@@ -281,7 +281,7 @@
 
 // ── Embedded Graph Data (auto-replaced by build.py) ─────
 // __GRAPH_DATA_START__
-const GRAPH_DATA = {"nodes":[], "edges":[], "projects":{}};
+const GRAPH_DATA = {"projects": {}, "nodes": [], "edges": []};
 // __GRAPH_DATA_END__
 
 // ── Config ──────────────────────────────────────────────
@@ -294,7 +294,7 @@ const TYPE_STYLES = {
   decision:   { color: '#C73838', icon: '★', label: 'Decision' },
   brief:      { color: '#0E8A8A', icon: '✎', label: 'Brief' },
   draft:      { color: '#7A8B2A', icon: '✦', label: 'Draft' },
-  external:   { color: '#8a8a98', icon: '◇', label: 'Notion' },
+  external:   { color: '#8a8a98', icon: '◇', label: 'External' },  // hidden from graph, used in panel
 };
 
 const PROJECT_PALETTES = [
@@ -319,9 +319,28 @@ function init() {
     return;
   }
 
-  const { projects, nodes, edges } = GRAPH_DATA;
+  const { projects, nodes: allNodes, edges } = GRAPH_DATA;
   const width = window.innerWidth;
   const height = window.innerHeight;
+
+  // ── Filter: only render local docs (externals become ref counts) ──
+  const nodes = allNodes.filter(n => !n.external);
+  const extCount = allNodes.filter(n => n.external).length;
+
+  // Build external ref counts per local node.
+  // Local-to-local edges are already visible in the graph; the badge
+  // and References panel only surface external refs (Notion pages, URLs).
+  const nodeIds = new Set(nodes.map(n => n.id));
+  const extRefCount = {};  // how many external refs this doc has
+  const extRefsFor = {};   // list of external edge targets per doc
+  nodes.forEach(n => { extRefCount[n.id] = 0; extRefsFor[n.id] = []; });
+  for (const e of edges) {
+    const isExtTarget = !nodeIds.has(e.target);
+    if (isExtTarget && extRefCount[e.source] !== undefined) {
+      extRefCount[e.source]++;
+      extRefsFor[e.source].push(e.target);
+    }
+  }
 
   // ── Legend ──
   const legendEl = document.getElementById('legend');
@@ -334,15 +353,12 @@ function init() {
     legendEl.appendChild(item);
   }
 
-  // ── Resolve edges ──
-  const nodeIds = new Set(nodes.map(n => n.id));
+  // ── Resolve edges (local-to-local only) ──
   const resolvedEdges = edges.filter(e => nodeIds.has(e.source) && nodeIds.has(e.target));
 
   // ── Stats ──
-  const localCount = nodes.filter(n => !n.external).length;
-  const extCount = nodes.filter(n => n.external).length;
   document.getElementById('stats').textContent =
-    `${localCount} docs · ${extCount} external refs · ${edges.length} references`;
+    `${nodes.length} docs · ${edges.length} references`;
 
   // ── SVG ──
   const svg = d3.select('body').append('svg').attr('width', width).attr('height', height);
@@ -375,190 +391,159 @@ function init() {
   svg.call(zoomBehavior);
 
   // ── Horizontal Timeline Layout ──
-  // Dates flow LEFT → RIGHT (oldest to newest). Each date is a vertical
-  // lane with its main doc on top and descendants stacked below. Externals
-  // cluster ABOVE the lane of the doc(s) they're connected to. Externals
-  // referenced by multiple lanes float in a "shared" row even higher.
-  const localNodes = nodes.filter(n => !n.external);
-  const extNodes = nodes.filter(n => n.external);
-  const localIdSet = new Set(localNodes.map(n => n.id));
-
-  // Detect parent/child relationships among locals
-  const parentOf = {};
-  localNodes.forEach(n => {
-    for (const e of edges) {
-      if (e.source === n.id && localIdSet.has(e.target)) {
-        parentOf[n.id] = e.target;
-        break;
-      }
-    }
-  });
-  const childLocals = localNodes.filter(n => parentOf[n.id]);
-  const mainLocals = localNodes.filter(n => !parentOf[n.id]);
-
-  // Group main locals by date
+  // Dates flow LEFT → RIGHT (oldest to newest). Within each date lane,
+  // docs that reference each other form vertical chains. Unconnected
+  // docs sit side-by-side in separate columns. This keeps linked docs
+  // visually grouped while spreading unrelated docs horizontally.
+  // Group docs by date
   const byDate = {};
-  mainLocals.forEach(n => {
+  nodes.forEach(n => {
     const d = n.date || 'undated';
     (byDate[d] = byDate[d] || []).push(n);
   });
   const dates = Object.keys(byDate).sort();
 
-  // BFS-collect transitive descendants of a main
-  function collectDescendants(main) {
-    const out = [];
-    const seen = new Set([main.id]);
-    let frontier = childLocals.filter(c => parentOf[c.id] === main.id);
+  // Find connected components among locals within a single date.
+  // Two docs are connected if there's any edge between them (either direction).
+  function findComponents(dateNodes) {
+    const idSet = new Set(dateNodes.map(n => n.id));
+    const adj = new Map();
+    dateNodes.forEach(n => adj.set(n.id, new Set()));
+
+    for (const e of edges) {
+      if (idSet.has(e.source) && idSet.has(e.target)) {
+        adj.get(e.source).add(e.target);
+        adj.get(e.target).add(e.source);
+      }
+    }
+
+    const visited = new Set();
+    const components = [];
+
+    for (const n of dateNodes) {
+      if (visited.has(n.id)) continue;
+      const comp = [];
+      const queue = [n.id];
+      while (queue.length) {
+        const cur = queue.shift();
+        if (visited.has(cur)) continue;
+        visited.add(cur);
+        comp.push(cur);
+        for (const neighbor of adj.get(cur)) {
+          if (!visited.has(neighbor)) queue.push(neighbor);
+        }
+      }
+      components.push(comp);
+    }
+    return components; // array of arrays of node IDs
+  }
+
+  // Topological sort within a component: put "root" nodes first
+  // (nodes that are referenced by others but don't reference others in the group),
+  // then their dependents. Falls back to date-based ordering.
+  function orderComponent(compIds, dateNodes) {
+    const idSet = new Set(compIds);
+    const nodeMap = new Map(dateNodes.map(n => [n.id, n]));
+
+    // Build directed adjacency: source → targets (within component)
+    const children = new Map();
+    const parentCount = new Map();
+    compIds.forEach(id => { children.set(id, []); parentCount.set(id, 0); });
+
+    for (const e of edges) {
+      if (idSet.has(e.source) && idSet.has(e.target)) {
+        children.get(e.source).push(e.target);
+        parentCount.set(e.target, parentCount.get(e.target) + 1);
+      }
+    }
+
+    // Roots = nodes with no incoming edges from within the component
+    const roots = compIds.filter(id => parentCount.get(id) === 0);
+    if (roots.length === 0) return compIds.map(id => nodeMap.get(id));
+
+    // BFS from roots to get topological order
+    const ordered = [];
+    const seen = new Set();
+    let frontier = [...roots];
     while (frontier.length) {
+      // Sort frontier by name for stability
+      frontier.sort((a, b) => (nodeMap.get(a).name || '').localeCompare(nodeMap.get(b).name || ''));
       const next = [];
-      for (const n of frontier) {
-        if (seen.has(n.id)) continue;
-        seen.add(n.id);
-        out.push(n);
-        next.push(...childLocals.filter(c => parentOf[c.id] === n.id));
+      for (const id of frontier) {
+        if (seen.has(id)) continue;
+        seen.add(id);
+        ordered.push(nodeMap.get(id));
+        for (const child of children.get(id)) {
+          if (!seen.has(child)) next.push(child);
+        }
       }
       frontier = next;
     }
-    return out;
+    // Add any remaining (cycles) at the end
+    compIds.forEach(id => { if (!seen.has(id)) ordered.push(nodeMap.get(id)); });
+    return ordered;
   }
 
   // ── Layout constants ──
-  const COL_WIDTH = 320;       // horizontal space per date lane
-  const COL_GAP = 60;          // gap between lanes
-  const ROW_SPACING = 130;     // vertical gap between local docs in a lane
-  const HEADER_HEIGHT = 80;    // space at top of lane for date label
-  const LANE_PAD_X = 50;       // horizontal padding inside lane card
-  const LANE_PAD_BOT = 90;     // padding below last node
-  const EXT_ROW_GAP = 100;     // gap between externals row and lane top
-  const EXT_NODE_W = 180;      // horizontal width per external slot
-  const EXT_NODE_H = 72;       // vertical step per external row
-  const SHARED_EXT_GAP = 140;  // gap between shared externals row and per-lane externals
+  const CHAIN_COL_WIDTH = 280;   // horizontal space per chain column
+  const CHAIN_COL_GAP = 40;      // gap between chain columns within a lane
+  const COL_GAP = 120;           // gap between lanes
+  const ROW_SPACING = 140;       // vertical gap between docs in a chain
+  const HEADER_HEIGHT = 90;      // space at top of lane for date label
+  const LANE_PAD_X = 80;         // horizontal padding inside lane card
+  const LANE_PAD_BOT = 100;      // padding below last node
 
   // ── Place locals into lanes ──
-  // For each date, build a vertical column. Track lane bounds.
-  const lanes = []; // {date, x1, x2, topY, bottomY, locals: [...] }
+  // For each date, find connected components and lay them out as
+  // side-by-side vertical chains.
+  const lanes = [];
   let cursorX = 0;
 
-  dates.forEach(date => {
-    const mains = byDate[date];
+  dates.forEach((date, i) => {
+    if (i > 0) {
+      cursorX += COL_GAP;
+    }
+
+    const dateNodes = byDate[date];
+    const components = findComponents(dateNodes);
+
+    // Order components: largest (most connected) first for visual weight
+    components.sort((a, b) => b.length - a.length);
+
+    const numCols = components.length;
+    const laneWidth = numCols * CHAIN_COL_WIDTH + Math.max(0, numCols - 1) * CHAIN_COL_GAP;
+
     const lane = {
       date,
       x1: cursorX,
-      x2: cursorX + COL_WIDTH,
-      cx: cursorX + COL_WIDTH / 2,
+      x2: cursorX + laneWidth,
       topY: 0,
       bottomY: 0,
       locals: [],
     };
 
-    let yCursor = HEADER_HEIGHT;
-    mains.forEach(m => {
-      m.x = lane.cx;
-      m.y = yCursor;
-      lane.locals.push(m);
-      const descendants = collectDescendants(m);
-      descendants.forEach(d => {
+    let maxBottom = HEADER_HEIGHT;
+
+    components.forEach((compIds, colIdx) => {
+      const ordered = orderComponent(compIds, dateNodes);
+      const colCenterX = cursorX + colIdx * (CHAIN_COL_WIDTH + CHAIN_COL_GAP) + CHAIN_COL_WIDTH / 2;
+
+      let yCursor = HEADER_HEIGHT;
+      ordered.forEach(n => {
+        n.x = colCenterX;
+        n.y = yCursor;
+        lane.locals.push(n);
         yCursor += ROW_SPACING;
-        d.x = lane.cx;
-        d.y = yCursor;
-        lane.locals.push(d);
       });
-      yCursor += ROW_SPACING;
+      if (yCursor > maxBottom) maxBottom = yCursor;
     });
-    lane.bottomY = yCursor - ROW_SPACING + LANE_PAD_BOT;
+
+    lane.bottomY = maxBottom - ROW_SPACING + LANE_PAD_BOT;
     lanes.push(lane);
-    cursorX += COL_WIDTH + COL_GAP;
+    cursorX += laneWidth;
   });
 
-  // ── External clustering ──
-  // For each external, find the local docs that reference it.
-  // Group: an external is "owned" by a single lane if all its local sources
-  // share the same date. Otherwise it's "shared" across lanes.
-  const extInfo = extNodes.map(n => {
-    const sources = edges
-      .filter(e => e.target === n.id && localIdSet.has(e.source))
-      .map(e => localNodes.find(l => l.id === e.source))
-      .filter(Boolean);
-    const sourceDates = [...new Set(sources.map(s => s.date))];
-    return { node: n, sources, sourceDates };
-  });
-
-  const ownedByLane = {};   // date -> [ext nodes]
-  const sharedExts = [];
-
-  extInfo.forEach(info => {
-    if (info.sourceDates.length === 1) {
-      const d = info.sourceDates[0];
-      (ownedByLane[d] = ownedByLane[d] || []).push(info);
-    } else if (info.sourceDates.length > 1) {
-      sharedExts.push(info);
-    } else {
-      // Orphan external (no local sources) — bucket into a "_orphan" lane
-      (ownedByLane._orphan = ownedByLane._orphan || []).push(info);
-    }
-  });
-
-  // Within each lane, group owned externals by their FULL source signature
-  // so externals referenced by the same local doc(s) cluster tightly.
-  function bySignature(items) {
-    const groups = new Map();
-    items.forEach(info => {
-      const sig = info.sources.map(s => s.id).sort().join('|');
-      if (!groups.has(sig)) groups.set(sig, []);
-      groups.get(sig).push(info);
-    });
-    return [...groups.values()];
-  }
-
-  // Place per-lane externals ABOVE each lane in a small grid (max 2 columns).
-  // Track how high above the lane top they extend so we can size lane cards.
-  let maxExtTop = 0;
-  lanes.forEach(lane => {
-    const owned = ownedByLane[lane.date] || [];
-    if (!owned.length) return;
-    const groups = bySignature(owned);
-
-    // Stack groups upward from the lane top. Within a group, items go in
-    // a 2-column grid.
-    let topCursor = -EXT_ROW_GAP;
-    groups.forEach(group => {
-      group.forEach((info, i) => {
-        const col = i % 2;
-        const row = Math.floor(i / 2);
-        info.node.x = lane.cx + (col === 0 ? -EXT_NODE_W / 2 : EXT_NODE_W / 2);
-        info.node.y = topCursor - row * EXT_NODE_H;
-      });
-      const groupRows = Math.ceil(group.length / 2);
-      topCursor -= groupRows * EXT_NODE_H + 24;
-    });
-    if (topCursor < maxExtTop) maxExtTop = topCursor;
-  });
-
-  // Place SHARED externals in a row above all lanes, centered between
-  // their sources' lanes.
-  if (sharedExts.length) {
-    const sharedRowY = maxExtTop - SHARED_EXT_GAP;
-    sharedExts.forEach((info, i) => {
-      // Average x of all source lanes
-      const xs = info.sources.map(s => s.x);
-      info.node.x = xs.reduce((a, b) => a + b, 0) / xs.length;
-      info.node.y = sharedRowY - (i % 2) * EXT_NODE_H * 0.6;
-    });
-    // De-overlap horizontally
-    const sortedShared = [...sharedExts].sort((a, b) => a.node.x - b.node.x);
-    const MIN_X_GAP = EXT_NODE_W;
-    for (let i = 1; i < sortedShared.length; i++) {
-      const prev = sortedShared[i - 1].node;
-      const cur = sortedShared[i].node;
-      if (cur.x - prev.x < MIN_X_GAP) {
-        cur.x = prev.x + MIN_X_GAP;
-      }
-    }
-    if (sharedRowY < maxExtTop) maxExtTop = sharedRowY - EXT_NODE_H;
-  }
-
-  // Apply uniform top to all lanes for consistent card heights
-  const laneTopY = maxExtTop - 40;
+  // Lane card tops are uniform (no external nodes above)
   lanes.forEach(lane => {
     lane.topY = 0;
     lane.cardTop = 0;
@@ -576,19 +561,22 @@ function init() {
   // Pin every node so nothing drifts.
   nodes.forEach(n => { n.fx = n.x; n.fy = n.y; });
 
-  // Center the whole graph in the viewport
-  const allX = nodes.map(n => n.x);
-  const allY = nodes.map(n => n.y);
-  const minX = Math.min(...allX), maxX = Math.max(...allX);
-  const minY = Math.min(...allY), maxY = Math.max(...allY);
-  const graphW = maxX - minX + 200;
-  const graphH = maxY - minY + 200;
-  const scale = Math.min(width / graphW, height / graphH, 1);
-  // Center vertically on full graph, horizontally on the latest lane
-  const lastLane = laneBoxes[laneBoxes.length - 1];
-  const focusX = lastLane ? (lastLane.x1 + lastLane.x2) / 2 : (minX + maxX) / 2;
-  const tx = width / 2 - focusX * scale;
-  const ty = height / 2 - ((minY + maxY) / 2) * scale;
+  // Focus on the 3 most recent date lanes on initial load.
+  // User can scroll/zoom to see older lanes.
+  const FOCUS_LANES = 3;
+  const recentBoxes = laneBoxes.slice(-Math.min(FOCUS_LANES, laneBoxes.length));
+  const focMinX = Math.min(...recentBoxes.map(b => b.x1));
+  const focMaxX = Math.max(...recentBoxes.map(b => b.x2));
+  const focMinY = Math.min(...recentBoxes.map(b => b.y1));
+  const focMaxY = Math.max(...recentBoxes.map(b => b.y2));
+  const PAD = 60;
+  const focW = (focMaxX - focMinX) + PAD * 2;
+  const focH = (focMaxY - focMinY) + PAD * 2;
+  const scale = Math.min(width / focW, height / focH, 1.2);
+  const cx = (focMinX + focMaxX) / 2;
+  const cy = (focMinY + focMaxY) / 2;
+  const tx = width / 2 - cx * scale;
+  const ty = height / 2 - cy * scale;
   svg.call(zoomBehavior.transform, d3.zoomIdentity.translate(tx, ty).scale(scale));
 
   const sim = d3.forceSimulation(nodes)
@@ -660,10 +648,6 @@ function init() {
     .attr('fill', 'none')
     .attr('stroke', '#c4c4ba')
     .attr('stroke-width', 1.4)
-    .attr('stroke-dasharray', d => {
-      const t = nodes.find(n => n.id === (typeof d.target === 'object' ? d.target.id : d.target));
-      return (t && t.external) ? '3,5' : 'none';
-    })
     .attr('marker-end', 'url(#arrow-b8b8b0)');
 
   // ── Nodes ──
@@ -672,48 +656,62 @@ function init() {
     .join('g')
     .attr('class', 'node node-clickable');
 
-  // Glow for local nodes
-  node.filter(d => !d.external).append('circle')
+  // Glow
+  node.append('circle')
     .attr('r', 32)
     .attr('fill', d => getTypeStyle(d.type).color)
     .attr('opacity', 0.10);
 
   // Main circle
   node.append('circle')
-    .attr('r', d => d.external ? 10 : 22)
-    .attr('fill', d => d.external ? '#ffffff' : '#ffffff')
+    .attr('r', 22)
+    .attr('fill', '#ffffff')
     .attr('stroke', d => getTypeStyle(d.type).color)
-    .attr('stroke-width', d => d.external ? 1.2 : 2);
+    .attr('stroke-width', 2);
 
-  // Icon (bigger now)
-  node.filter(d => !d.external).append('text')
+  // Icon
+  node.append('text')
     .text(d => getTypeStyle(d.type).icon)
     .attr('text-anchor', 'middle')
     .attr('dominant-baseline', 'central')
     .attr('font-size', 14)
     .attr('fill', d => getTypeStyle(d.type).color);
 
+  // Source count badge — small colored circle with number at top-right
+  node.filter(d => extRefCount[d.id] > 0).each(function(d) {
+    const count = extRefCount[d.id];
+    const r = 10;
+    const badge = d3.select(this).append('g')
+      .attr('transform', 'translate(18, -18)');
+    badge.append('circle')
+      .attr('r', r)
+      .attr('fill', getTypeStyle(d.type).color);
+    badge.append('text')
+      .text(count)
+      .attr('text-anchor', 'middle')
+      .attr('dominant-baseline', 'central')
+      .attr('font-size', 10)
+      .attr('font-weight', 700)
+      .attr('fill', '#ffffff');
+  });
+
   // Labels
   const MAX_LABEL = 32;
   node.append('text')
     .text(d => {
       let label = d.name;
-      if (d.external) {
-        const m = label.match(/^(O\d)/);
-        if (!m) label = label.substring(0, 22);
-      }
       if (label.length > MAX_LABEL) label = label.substring(0, MAX_LABEL - 1) + '…';
       return label;
     })
-    .attr('y', d => d.external ? 22 : 38)
+    .attr('y', 38)
     .attr('text-anchor', 'middle')
-    .attr('font-size', d => d.external ? 10 : 12)
-    .attr('font-weight', d => d.external ? 400 : 600)
-    .attr('fill', d => d.external ? '#7a7a88' : '#2a2a35')
+    .attr('font-size', 12)
+    .attr('font-weight', 600)
+    .attr('fill', '#2a2a35')
     .attr('letter-spacing', '0.01em');
 
-  // Date subtitle for local nodes
-  node.filter(d => !d.external && d.date).append('text')
+  // Date subtitle
+  node.filter(d => d.date).append('text')
     .text(d => d.date)
     .attr('y', 52)
     .attr('text-anchor', 'middle')
@@ -739,10 +737,10 @@ function init() {
     const style = getTypeStyle(d.type);
     tooltip.innerHTML = `
       <div class="tt-name">${d.name}</div>
-      <div class="tt-type" style="color:${style.color}">${d.type}${d.date ? '  ·  ' + formatDate(d.date) : ''}</div>
-      ${d.description && !d.external ? `<div class="tt-desc">${d.description}</div>` : ''}
-      <div class="tt-path">${d.external ? d.id : d.path}</div>
-      <div class="tt-hint">${d.external ? 'Click to open in Notion' : 'Click to open file'}</div>
+      <div class="tt-type" style="color:${style.color}">${d.type}${d.date ? '  ·  ' + formatDate(d.date) : ''}${extRefCount[d.id] ? '  ·  ' + extRefCount[d.id] + ' source' + (extRefCount[d.id] > 1 ? 's' : '') : ''}</div>
+      ${d.description ? `<div class="tt-desc">${d.description}</div>` : ''}
+      <div class="tt-path">${d.path}</div>
+      <div class="tt-hint">Click to open</div>
     `;
     tooltip.style.opacity = 1;
 
@@ -793,17 +791,40 @@ function init() {
     panelName.textContent = d.name;
     const metaParts = [];
     if (d.date) metaParts.push(formatDate(d.date));
+    if (extRefCount[d.id]) metaParts.push(`${extRefCount[d.id]} ref${extRefCount[d.id] > 1 ? 's' : ''}`);
     if (d.path) metaParts.push(`<span style="font-family:ui-monospace,monospace;color:#9a9aa8">${d.path}</span>`);
     panelMeta.innerHTML = metaParts.join('  ·  ');
 
-    if (d.content && typeof marked !== 'undefined') {
-      panelBody.innerHTML = marked.parse(d.content);
-    } else if (d.content) {
-      panelBody.innerHTML = '<pre style="white-space:pre-wrap;font-family:inherit">' +
-        d.content.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])) + '</pre>';
-    } else {
-      panelBody.innerHTML = '<p style="color:#9a9aa8">No content available.</p>';
+    let bodyHtml = '';
+
+    // External references section — local edges are already visible in the graph
+    const extRefs = (extRefsFor[d.id] || []);
+    if (extRefs.length) {
+      bodyHtml += '<div style="margin-bottom:20px;padding:14px 16px;background:#f8f8f5;border-radius:10px;">';
+      bodyHtml += '<div style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:#9a9aa8;font-weight:600;margin-bottom:8px;">Sources</div>';
+      extRefs.forEach(target => {
+        const extNode = allNodes.find(n => n.id === target);
+        const label = extNode ? extNode.name : target.split('/').pop().substring(0, 40);
+        bodyHtml += `<div style="margin:5px 0;"><a href="${target}" target="_blank" style="color:#3F6FD9;text-decoration:none;border-bottom:1px solid #c8d4f0;font-size:13px;">${label}</a><span style="color:#b0b0b8;font-size:10px;margin-left:6px;">↗</span></div>`;
+      });
+      bodyHtml += '</div>';
     }
+
+    // Document content — strip leading h1 if it duplicates the panel header
+    let content = d.content || '';
+    // Remove first markdown heading if it matches the doc name
+    content = content.replace(/^#\s+.*\n+/, '');
+
+    if (content.trim() && typeof marked !== 'undefined') {
+      bodyHtml += marked.parse(content);
+    } else if (content.trim()) {
+      bodyHtml += '<pre style="white-space:pre-wrap;font-family:inherit">' +
+        content.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])) + '</pre>';
+    } else if (!extRefs.length) {
+      bodyHtml += '<p style="color:#9a9aa8">No content available.</p>';
+    }
+
+    panelBody.innerHTML = bodyHtml;
     panelBody.scrollTop = 0;
     panel.classList.add('open');
     document.getElementById('panel-backdrop').classList.add('open');
@@ -822,11 +843,7 @@ function init() {
 
   node.on('click', (event, d) => {
     event.stopPropagation();
-    if (d.external) {
-      window.open(d.id, '_blank');
-    } else {
-      openPanel(d);
-    }
+    openPanel(d);
   });
 
   // ── Tick ──

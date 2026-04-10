@@ -3,5 +3,6 @@
 *.zip
 
 # Local dev: test docs and graph output (not part of the plugin)
-docs/
+docs
+skills/build-graph/scripts/graph.json
 _graph/

@@ -70,12 +70,14 @@ def is_external_ref(ref):
 
 def external_node_name(url):
     """Generate a short display name for an external URL."""
-    # Notion pages: extract the page name from the URL
+    # Notion pages with workspace + slug: /workspace/Slug-Name-<32hex>
     match = re.search(r'/([A-Za-z0-9-]+)-[a-f0-9]{32}', url)
     if match:
         name = match.group(1).replace('-', ' ')
-        # Capitalize
         return name.title()
+    # Bare Notion page IDs: notion.so/<32hex> — no readable name available
+    if re.search(r'notion\.so/[a-f0-9]{32}$', url):
+        return url.split('/')[-1][:12] + '…'
     return url.split('/')[-1][:30]
 
 
@@ -160,6 +162,15 @@ def scan_folder(root_path):
             if isinstance(refs, str):
                 refs = [refs]
             for ref in refs:
+                # Normalize relative local paths.
+                # If the ref starts with ../ it's relative to the file's dir.
+                # If it looks like YYYY-MM-DD/file.md it's already root-relative.
+                # Either way, normpath cleans it up.
+                if not is_external_ref(ref):
+                    if ref.startswith('.'):
+                        ref = os.path.normpath(os.path.join(os.path.dirname(rel_path), ref))
+                    else:
+                        ref = os.path.normpath(ref)
                 edges.append({'source': node_id, 'target': ref})
 
                 # Track external references as special nodes

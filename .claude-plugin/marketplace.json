@@ -9,7 +9,7 @@
       "name": "docs-graph",
       "source": "./",
       "description": "Turn a folder of markdown documents into an interactive visual graph. Use AI to review, iterate on, and synthesize your thinking — then see how everything connects.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "author": {
         "name": "Monte Thakkar"
       },
