@@ -15,8 +15,8 @@ jobs:
 
       - name: Build plugin
         run: |
-          zip -r docs-graph.plugin . \
-            -x ".git/*" ".gitignore" "*.DS_Store" "*.plugin" \
+          zip -r docs-graph.zip . \
+            -x ".git/*" ".gitignore" "*.DS_Store" "*.zip" \
             "build.sh" "AGENTS.md" ".github/*"
 
       - name: Get short SHA
@@ -31,6 +31,6 @@ jobs:
           body: |
             Auto-built from commit ${{ github.sha }}.
 
-            Download `docs-graph.plugin` below and open it in Claude Cowork to install.
-          files: docs-graph.plugin
+            Download `docs-graph.zip` and upload it in Claude Cowork (Settings → Plugins → Upload local plugin).
+          files: docs-graph.zip
           make_latest: true

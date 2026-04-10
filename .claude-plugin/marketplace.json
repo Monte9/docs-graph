@@ -1,0 +1,20 @@
+{
+  "name": "docs-graph-marketplace",
+  "owner": {
+    "name": "Monte Thakkar",
+    "email": "manthan.thakkar@gmail.com"
+  },
+  "plugins": [
+    {
+      "name": "docs-graph",
+      "source": "./",
+      "description": "Turn a folder of markdown documents into an interactive visual graph. Use AI to review, iterate on, and synthesize your thinking — then see how everything connects.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Monte Thakkar"
+      },
+      "license": "MIT",
+      "keywords": ["docs-graph", "graph", "markdown", "visualization", "documents"]
+    }
+  ]
+}
