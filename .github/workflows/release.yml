@@ -19,18 +19,18 @@ jobs:
             -x ".git/*" ".gitignore" "*.DS_Store" "*.zip" \
             "build.sh" "AGENTS.md" ".github/*"
 
-      - name: Get short SHA
-        id: sha
-        run: echo "short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+      - name: Get version
+        id: version
+        run: echo "version=$(jq -r .version .claude-plugin/plugin.json)" >> $GITHUB_OUTPUT
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: build-${{ steps.sha.outputs.short }}
-          name: Build ${{ steps.sha.outputs.short }}
+          tag_name: v${{ steps.version.outputs.version }}
+          name: v${{ steps.version.outputs.version }}
           body: |
-            Auto-built from commit ${{ github.sha }}.
+            docs-graph v${{ steps.version.outputs.version }}
 
-            Download `docs-graph.zip` and upload it in Claude Cowork (Settings → Plugins → Upload local plugin).
+            Download `docs-graph.zip` and upload it in Claude Cowork (Customize → Plugins → Upload).
           files: docs-graph.zip
           make_latest: true
