@@ -158,10 +158,9 @@
     border-bottom: 1px solid #f0f0e8;
     flex-shrink: 0;
   }
-  #panel-close {
+  #panel-close, #panel-refresh {
     position: absolute;
     top: 18px;
-    right: 22px;
     width: 32px;
     height: 32px;
     border: none;
@@ -173,7 +172,9 @@
     line-height: 1;
     transition: background 0.12s;
   }
-  #panel-close:hover { background: #f0f0e8; color: #2a2a35; }
+  #panel-close { right: 22px; }
+  #panel-refresh { right: 56px; }
+  #panel-close:hover, #panel-refresh:hover { background: #f0f0e8; color: #2a2a35; }
 
   #panel-type {
     display: inline-block;
@@ -266,6 +267,7 @@
 
 <div id="panel-backdrop"></div>
 <aside id="panel">
+  <button id="panel-refresh" aria-label="Refresh" title="Reload graph data">↻</button>
   <button id="panel-close" aria-label="Close">×</button>
   <div id="panel-header">
     <div id="panel-type"></div>
@@ -828,18 +830,40 @@ function init() {
     panelBody.scrollTop = 0;
     panel.classList.add('open');
     document.getElementById('panel-backdrop').classList.add('open');
+    // Persist open panel in URL hash so refresh keeps it open
+    history.replaceState(null, '', '#' + encodeURIComponent(d.id));
   }
 
   function closePanel() {
     panel.classList.remove('open');
     document.getElementById('panel-backdrop').classList.remove('open');
+    history.replaceState(null, '', window.location.pathname);
   }
 
   document.getElementById('panel-close').addEventListener('click', closePanel);
   document.getElementById('panel-backdrop').addEventListener('click', closePanel);
+  document.getElementById('panel-refresh').addEventListener('click', () => {
+    window.location.reload();
+  });
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') closePanel();
   });
+
+  // Auto-open panel if URL hash points to a doc (skip animation on restore)
+  if (window.location.hash) {
+    const hashId = decodeURIComponent(window.location.hash.slice(1));
+    const target = nodes.find(n => n.id === hashId);
+    if (target) {
+      panel.style.transition = 'none';
+      document.getElementById('panel-backdrop').style.transition = 'none';
+      openPanel(target);
+      // Re-enable transitions after paint
+      requestAnimationFrame(() => {
+        panel.style.transition = '';
+        document.getElementById('panel-backdrop').style.transition = '';
+      });
+    }
+  }
 
   node.on('click', (event, d) => {
     event.stopPropagation();
