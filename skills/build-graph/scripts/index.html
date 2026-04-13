@@ -556,16 +556,28 @@ function init() {
     lane.cardTop = 0;
   });
 
-  // ── Place research nodes below the timeline ──
+  // ── Place research nodes below their parent doc ──
   if (researchNodes.length) {
     const maxLaneBottom = lanes.length ? Math.max(...lanes.map(l => l.bottomY)) : 0;
-    const researchY = maxLaneBottom + 120;
-    const totalWidth = cursorX || CHAIN_COL_WIDTH;
-    const spacing = Math.min(CHAIN_COL_WIDTH, totalWidth / researchNodes.length);
-    const startX = (totalWidth - spacing * (researchNodes.length - 1)) / 2;
-    researchNodes.forEach((n, i) => {
-      n.x = startX + i * spacing;
-      n.y = researchY;
+    const researchY = maxLaneBottom + 100;
+    // Build lookup: research node id → parent doc node (via edges)
+    const nodeById = new Map(nodes.concat(researchNodes).map(n => [n.id, n]));
+    researchNodes.forEach((rn, i) => {
+      // Find a parent doc that references this research node
+      const parentEdge = edges.find(e => {
+        const tid = e.target.id || e.target;
+        return tid === rn.id;
+      });
+      const parentNode = parentEdge ? nodeById.get(parentEdge.source.id || parentEdge.source) : null;
+      if (parentNode && parentNode.x != null) {
+        rn.x = parentNode.x;
+        rn.y = researchY;
+      } else {
+        // Fallback: center below the timeline
+        const totalWidth = cursorX || CHAIN_COL_WIDTH;
+        rn.x = totalWidth / 2;
+        rn.y = researchY;
+      }
     });
   }
 
