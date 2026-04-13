@@ -288,6 +288,60 @@
 
   /* Improve readability for long prose */
   #panel-body p, #panel-body li { line-height: 1.65; }
+
+  /* ── Full-screen chart overlay ── */
+  #chart-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    background: #ffffff;
+    display: none;
+    flex-direction: column;
+  }
+  #chart-overlay.open { display: flex; }
+  #chart-overlay-header {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    border-bottom: 1px solid #e6e6dc;
+    flex-shrink: 0;
+    background: #fafaf6;
+  }
+  #chart-overlay-type {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 4px 10px;
+    border-radius: 4px;
+    margin-right: 12px;
+  }
+  #chart-overlay-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #2a2a35;
+    flex: 1;
+  }
+  #chart-overlay-close {
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: transparent;
+    color: #9a9aa8;
+    font-size: 24px;
+    cursor: pointer;
+    border-radius: 6px;
+    line-height: 1;
+    transition: background 0.12s;
+    flex-shrink: 0;
+  }
+  #chart-overlay-close:hover { background: #f0f0e8; color: #2a2a35; }
+  #chart-iframe {
+    flex: 1;
+    border: none;
+    width: 100%;
+  }
 </style>
 </head>
 <body>
@@ -312,6 +366,16 @@
   <div id="panel-body"></div>
 </aside>
 
+<!-- Full-screen chart overlay -->
+<div id="chart-overlay">
+  <div id="chart-overlay-header">
+    <div id="chart-overlay-type"></div>
+    <div id="chart-overlay-name"></div>
+    <button id="chart-overlay-close" aria-label="Close">×</button>
+  </div>
+  <iframe id="chart-iframe"></iframe>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.0/marked.min.js"></script>
 <script>
@@ -332,6 +396,7 @@ const TYPE_STYLES = {
   brief:      { color: '#0E8A8A', icon: '✎', label: 'Brief' },
   draft:      { color: '#7A8B2A', icon: '✦', label: 'Draft' },
   research:   { color: '#E05D44', icon: '⊞', label: 'Research' },
+  chart:      { color: '#2A7B9B', icon: '▣', label: 'Chart' },
   external:   { color: '#8a8a98', icon: '◇', label: 'External' },  // hidden from graph, used in panel
 };
 
@@ -861,7 +926,37 @@ function init() {
   const panelMeta = document.getElementById('panel-meta');
   const panelBody = document.getElementById('panel-body');
 
+  // ── Chart overlay ──
+  const chartOverlay = document.getElementById('chart-overlay');
+  const chartOverlayType = document.getElementById('chart-overlay-type');
+  const chartOverlayName = document.getElementById('chart-overlay-name');
+  const chartIframe = document.getElementById('chart-iframe');
+
+  function openChartOverlay(d) {
+    const style = getTypeStyle(d.type);
+    chartOverlayType.textContent = style.label || d.type;
+    chartOverlayType.style.color = style.color;
+    chartOverlayType.style.background = style.color + '15';
+    chartOverlayName.textContent = d.name;
+    chartIframe.src = 'charts/' + d.chart;
+    chartOverlay.classList.add('open');
+    history.replaceState(null, '', '#' + encodeURIComponent(d.id));
+  }
+
+  function closeChartOverlay() {
+    chartOverlay.classList.remove('open');
+    chartIframe.src = '';
+    history.replaceState(null, '', window.location.pathname);
+  }
+
+  document.getElementById('chart-overlay-close').addEventListener('click', closeChartOverlay);
+
   function openPanel(d) {
+    // Chart-type docs open in full-screen overlay instead of side panel
+    if (d.type === 'chart' && d.chart) {
+      openChartOverlay(d);
+      return;
+    }
     const style = getTypeStyle(d.type);
     panelType.textContent = style.label || d.type;
     panelType.style.color = style.color;
@@ -922,7 +1017,10 @@ function init() {
     window.location.reload();
   });
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') closePanel();
+    if (e.key === 'Escape') {
+      closePanel();
+      closeChartOverlay();
+    }
   });
 
   // Auto-open panel if URL hash points to a doc (skip animation on restore)

@@ -243,6 +243,9 @@ def scan_folder(root_path):
                 'external': False,
                 'content': body,
             }
+            # Pass through chart path for chart-type docs
+            if meta.get('chart'):
+                node['chart'] = meta['chart']
             nodes.append(node)
 
             if project not in projects:
