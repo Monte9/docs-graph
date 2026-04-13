@@ -296,7 +296,7 @@ const TYPE_STYLES = {
   decision:   { color: '#C73838', icon: '★', label: 'Decision' },
   brief:      { color: '#0E8A8A', icon: '✎', label: 'Brief' },
   draft:      { color: '#7A8B2A', icon: '✦', label: 'Draft' },
-  research:   { color: '#E05D44', icon: '◈', label: 'Research' },
+  research:   { color: '#E05D44', icon: '⊞', label: 'Research' },
   external:   { color: '#8a8a98', icon: '◇', label: 'External' },  // hidden from graph, used in panel
 };
 
@@ -398,11 +398,15 @@ function init() {
   // docs that reference each other form vertical chains. Unconnected
   // docs sit side-by-side in separate columns. This keeps linked docs
   // visually grouped while spreading unrelated docs horizontally.
-  // Group docs by date
+  // Group docs by date — separate research/undated nodes for bottom placement
   const byDate = {};
+  const researchNodes = [];
   nodes.forEach(n => {
-    const d = n.date || 'undated';
-    (byDate[d] = byDate[d] || []).push(n);
+    if (!n.date || (n.type === 'research' && !n.date)) {
+      researchNodes.push(n);
+    } else {
+      (byDate[n.date] = byDate[n.date] || []).push(n);
+    }
   });
   const dates = Object.keys(byDate).sort();
 
@@ -552,6 +556,19 @@ function init() {
     lane.cardTop = 0;
   });
 
+  // ── Place research nodes below the timeline ──
+  if (researchNodes.length) {
+    const maxLaneBottom = lanes.length ? Math.max(...lanes.map(l => l.bottomY)) : 0;
+    const researchY = maxLaneBottom + 120;
+    const totalWidth = cursorX || CHAIN_COL_WIDTH;
+    const spacing = Math.min(CHAIN_COL_WIDTH, totalWidth / researchNodes.length);
+    const startX = (totalWidth - spacing * (researchNodes.length - 1)) / 2;
+    researchNodes.forEach((n, i) => {
+      n.x = startX + i * spacing;
+      n.y = researchY;
+    });
+  }
+
   // dayBoxes -> laneBoxes (rendered as vertical lane cards)
   const laneBoxes = lanes.map(lane => ({
     date: lane.date,
@@ -660,14 +677,25 @@ function init() {
     .attr('class', 'node node-clickable');
 
   // Glow
-  node.append('circle')
+  node.filter(d => d.type !== 'research').append('circle')
     .attr('r', 32)
     .attr('fill', d => getTypeStyle(d.type).color)
     .attr('opacity', 0.10);
+  node.filter(d => d.type === 'research').append('rect')
+    .attr('x', -34).attr('y', -26).attr('width', 68).attr('height', 52)
+    .attr('rx', 10).attr('ry', 10)
+    .attr('fill', d => getTypeStyle(d.type).color)
+    .attr('opacity', 0.10);
 
-  // Main circle
-  node.append('circle')
+  // Main shape — circle for docs, rounded rect for research
+  node.filter(d => d.type !== 'research').append('circle')
     .attr('r', 22)
+    .attr('fill', '#ffffff')
+    .attr('stroke', d => getTypeStyle(d.type).color)
+    .attr('stroke-width', 2);
+  node.filter(d => d.type === 'research').append('rect')
+    .attr('x', -28).attr('y', -20).attr('width', 56).attr('height', 40)
+    .attr('rx', 8).attr('ry', 8)
     .attr('fill', '#ffffff')
     .attr('stroke', d => getTypeStyle(d.type).color)
     .attr('stroke-width', 2);

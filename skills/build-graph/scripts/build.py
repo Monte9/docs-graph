@@ -85,9 +85,12 @@ def external_node_name(url):
 def scan_data_folder(data_path, nodes, edges, projects):
     """Scan data/ folder for research nodes.
     Each subfolder becomes a 'research' node. Source .md files inside
-    are counted, and facts.csv presence is noted."""
+    are counted, and facts.csv presence is noted.
+    projects must be a dict (will be mutated to add '_research' key)."""
     if not os.path.isdir(data_path):
         return
+    if not isinstance(projects, dict):
+        raise TypeError(f"projects must be a dict, got {type(projects).__name__}")
 
     for folder in sorted(os.listdir(data_path)):
         folder_path = os.path.join(data_path, folder)
@@ -97,6 +100,7 @@ def scan_data_folder(data_path, nodes, edges, projects):
         # Count source files and read their content
         source_files = sorted(f for f in os.listdir(folder_path) if f.endswith('.md'))
         has_facts = os.path.exists(os.path.join(folder_path, 'facts.csv'))
+        fact_count = 0
 
         # Build content from all source files for the side panel
         content_parts = [f"# {folder.replace('-', ' ').title()}\n"]
@@ -217,8 +221,11 @@ def scan_folder(root_path):
             projects[project].append(node_id)
 
             # Build edge from data field (links doc to research node)
-            data_ref = meta.get('data', '')
+            data_ref = meta.get('data', '').strip()
             if data_ref:
+                # Strip leading data/ if someone includes it in frontmatter
+                if data_ref.startswith('data/'):
+                    data_ref = data_ref[5:]
                 edges.append({'source': node_id, 'target': f"data/{data_ref}"})
 
             # Build edges from references
