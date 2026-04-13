@@ -2,7 +2,8 @@
 *.plugin
 *.zip
 
-# Local dev: test docs and graph output (not part of the plugin)
+# Local dev: test docs, research data, and graph output (not part of the plugin)
 docs
+data
 skills/build-graph/scripts/graph.json
 _graph/

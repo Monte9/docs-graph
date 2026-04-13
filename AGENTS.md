@@ -38,20 +38,25 @@ When a user installs this plugin and mounts a folder, the expected layout is:
 │   ├── build.py
 │   ├── index.html
 │   └── graph.json
-└── docs/                  ← all documents go in here
-    ├── 2026-03-01/
-    │   └── synthesis-kickoff.md
-    └── 2026-04-02/
-        └── analysis-review.md
+├── docs/                  ← all documents go in here
+│   ├── 2026-03-01/
+│   │   └── synthesis-kickoff.md
+│   └── 2026-04-02/
+│       └── analysis-review.md
+└── data/                  ← research data folders (optional)
+    └── product-competitors/
+        ├── source1.md
+        ├── source2.md
+        └── facts.csv
 ```
 
-`_graph/` and `docs/` are siblings at the root. `build.py` scans `docs/` by default (the sibling directory).
+`_graph/`, `docs/`, and `data/` are siblings at the root. `build.py` scans `docs/` for documents and `data/` for research nodes.
 
 ## How the graph viewer works
 
-`build.py` walks `docs/`, parses YAML frontmatter (name, date, type, references), and embeds the resulting JSON into `index.html` between `// __GRAPH_DATA_START__` and `// __GRAPH_DATA_END__` markers. The HTML file uses D3.js to render a horizontal timeline with nodes per document and edges per reference.
+`build.py` walks `docs/`, parses YAML frontmatter (name, date, type, references, data), and embeds the resulting JSON into `index.html` between `// __GRAPH_DATA_START__` and `// __GRAPH_DATA_END__` markers. It also scans `data/` for research folders — each subfolder becomes a `research` node that counts its source `.md` files and `facts.csv` rows. The HTML file uses D3.js to render a horizontal timeline with nodes per document and edges per reference.
 
-The viewer is entirely self-contained — one HTML file, no server, no build tools.
+The viewer is entirely self-contained — one HTML file, no server, no build tools. It persists the open side panel via URL hash, so refreshing the page retains the current panel.
 
 ## Frontmatter format
 
@@ -61,15 +66,18 @@ Every markdown doc should start with:
 ---
 name: Title
 date: YYYY-MM-DD
-type: synthesis|analysis|comments|brief|draft|note
+type: synthesis|analysis|comments|brief|draft|note|research
 description: One-sentence summary
 references:
   - https://external-url.com
   - YYYY-MM-DD/other-doc.md
+data: folder-name
 ---
 ```
 
 `build.py` uses a simple line-based YAML parser (no PyYAML dependency). Keep frontmatter flat — no nested objects.
+
+The `data` field is optional — it links a doc to a research folder in `data/<value>/`, creating an edge to the corresponding research node in the graph. The `research` type is automatically assigned to nodes created from `data/` folders.
 
 ## Local development
 
@@ -78,8 +86,9 @@ For local dev, mount THIS repo folder (`~/Projects/docs-graph`) in Cowork. The s
 Run the setup script first to symlink your docs into the repo:
 
 ```bash
-./setup.sh              # symlinks docs/ → ~/docs (default)
-./setup.sh ~/other/path # symlinks docs/ → custom path
+./setup.sh                              # docs/ → ~/docs, data/ → ~/data
+./setup.sh ~/other/docs                 # docs/ → custom, data/ → ~/data
+./setup.sh ~/other/docs ~/other/data    # both custom
 ```
 
 After setup, the repo looks like:
@@ -87,6 +96,7 @@ After setup, the repo looks like:
 ```
 docs-graph/                      ← mount this folder
 ├── docs/ → ~/docs               ← symlink to your real docs (gitignored)
+├── data/ → ~/data               ← symlink to your research data (gitignored)
 ├── _graph/                      ← graph output goes here (gitignored)
 │   ├── build.py
 │   └── index.html
@@ -96,7 +106,7 @@ docs-graph/                      ← mount this folder
 └── ...
 ```
 
-This means one folder for everything: source code, real content via symlink, and graph output. `docs/` and `_graph/` are both gitignored — only the plugin source gets committed.
+This means one folder for everything: source code, real content via symlink, and graph output. `docs/`, `data/`, and `_graph/` are all gitignored — only the plugin source gets committed.
 
 ### Workflow
 
@@ -152,5 +162,5 @@ Users who installed via marketplace sync need to re-sync to pick up changes.
 ## Key files to know when making changes
 
 - **Viewer layout/styling**: `skills/build-graph/scripts/index.html` — CSS is in the `<style>` block, layout constants (COL_WIDTH, ROW_SPACING, etc.) are at the top of the `<script>` block, type colors are in the `TYPE_STYLES` object
-- **Data pipeline**: `skills/build-graph/scripts/build.py` — `parse_frontmatter()` handles YAML, `scan_folder()` walks the tree, `main()` embeds into HTML
+- **Data pipeline**: `skills/build-graph/scripts/build.py` — `parse_frontmatter()` handles YAML, `scan_folder()` walks docs/, `scan_data_folder()` walks data/ for research nodes, `main()` embeds into HTML
 - **Skill triggers**: the `description` field in each SKILL.md frontmatter controls when Cowork activates the skill — edit these if the skill isn't triggering when it should

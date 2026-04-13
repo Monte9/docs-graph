@@ -11,7 +11,7 @@ The result is a single `index.html` file that can be opened in any browser — n
 
 ## Folder layout
 
-The graph viewer (`_graph/`) lives at the root of the user's mounted folder. Documents live in a `docs/` subdirectory:
+The graph viewer (`_graph/`) lives at the root of the user's mounted folder. Documents live in `docs/`, and optional research data lives in `data/`:
 
 ```
 <root>/                    ← the folder the user mounted
@@ -19,14 +19,19 @@ The graph viewer (`_graph/`) lives at the root of the user's mounted folder. Doc
 │   ├── build.py
 │   ├── index.html
 │   └── graph.json
-└── docs/                  ← all documents go here
-    ├── 2026-03-01/
-    │   └── synthesis-kickoff.md
-    └── 2026-04-02/
-        └── analysis-review.md
+├── docs/                  ← all documents go here
+│   ├── 2026-03-01/
+│   │   └── synthesis-kickoff.md
+│   └── 2026-04-02/
+│       └── analysis-review.md
+└── data/                  ← research data folders (optional)
+    └── product-competitors/
+        ├── source1.md
+        ├── source2.md
+        └── facts.csv
 ```
 
-`build.py` scans the `docs/` sibling directory by default. Directories starting with `_` or `.` are skipped.
+`build.py` scans `docs/` for documents and `data/` for research nodes. Directories starting with `_` or `.` are skipped.
 
 ## When to use this skill
 
@@ -89,6 +94,7 @@ type: synthesis
 references:
   - https://example.com/some-page
   - 2026-04-02/other-doc.md
+data: product-competitors
 ---
 ```
 
@@ -96,9 +102,10 @@ Field details:
 
 - **name** (recommended): Display label in the graph. Falls back to the filename if missing.
 - **date** (recommended): Determines which timeline lane the node appears in. Documents with the same date share a lane.
-- **type** (optional): Drives the node's color and icon. Built-in types: `synthesis` (blue), `analysis` (purple), `comments` (amber), `brief` (teal), `draft` (olive), `note` (gray). Unknown types get default gray.
+- **type** (optional): Drives the node's color and icon. Built-in types: `synthesis` (blue), `analysis` (purple), `comments` (amber), `brief` (teal), `draft` (olive), `note` (gray), `research` (red). Unknown types get default gray.
 - **description** (optional): Shown in the side panel.
 - **references** (optional): A YAML list of URLs or relative file paths. Each becomes a directed edge. External URLs are rendered as "external" nodes. Relative paths are matched by suffix.
+- **data** (optional): Links the doc to a research folder in `data/<value>/`. Creates an edge to the research node in the graph. The research node shows source file count and facts from `facts.csv`.
 
 Files without frontmatter are still included as type `note`.
 

@@ -2,6 +2,7 @@
 """
 Scans a docs folder for .md files with YAML frontmatter,
 extracts metadata, and generates graph.json for the viewer.
+Also scans a data/ folder for research nodes.
 
 Usage:
     python build.py                     # scans docs/ sibling of _graph/
@@ -81,6 +82,64 @@ def external_node_name(url):
     return url.split('/')[-1][:30]
 
 
+def scan_data_folder(data_path, nodes, edges, projects):
+    """Scan data/ folder for research nodes.
+    Each subfolder becomes a 'research' node. Source .md files inside
+    are counted, and facts.csv presence is noted."""
+    if not os.path.isdir(data_path):
+        return
+
+    for folder in sorted(os.listdir(data_path)):
+        folder_path = os.path.join(data_path, folder)
+        if not os.path.isdir(folder_path) or folder.startswith('.') or folder.startswith('_'):
+            continue
+
+        # Count source files and read their content
+        source_files = sorted(f for f in os.listdir(folder_path) if f.endswith('.md'))
+        has_facts = os.path.exists(os.path.join(folder_path, 'facts.csv'))
+
+        # Build content from all source files for the side panel
+        content_parts = [f"# {folder.replace('-', ' ').title()}\n"]
+        content_parts.append(f"**{len(source_files)} source files**")
+        if has_facts:
+            # Count rows in facts.csv (minus header)
+            facts_path = os.path.join(folder_path, 'facts.csv')
+            with open(facts_path, 'r', encoding='utf-8') as f:
+                fact_count = max(0, sum(1 for line in f if line.strip()) - 1)
+            content_parts.append(f" | **{fact_count} facts**")
+        content_parts.append('\n\n')
+
+        # List source files as links
+        if source_files:
+            content_parts.append('## Sources\n')
+            for sf in source_files:
+                name = sf.replace('.md', '').replace('-', ' ').title()
+                content_parts.append(f"- {name}\n")
+
+        node_id = f"data/{folder}"
+        display_name = folder.replace('-', ' ').title()
+        description = f"Research: {len(source_files)} sources"
+        if has_facts:
+            description += f", {fact_count} facts"
+
+        node = {
+            'id': node_id,
+            'name': display_name,
+            'type': 'research',
+            'description': description,
+            'date': '',
+            'project': '_research',
+            'path': f"data/{folder}",
+            'external': False,
+            'content': ''.join(content_parts),
+        }
+        nodes.append(node)
+
+        if '_research' not in projects:
+            projects['_research'] = []
+        projects['_research'].append(node_id)
+
+
 def scan_folder(root_path):
     """Scan all .md files under root_path."""
     root_name = os.path.basename(os.path.normpath(root_path))
@@ -157,6 +216,11 @@ def scan_folder(root_path):
                 projects[project] = []
             projects[project].append(node_id)
 
+            # Build edge from data field (links doc to research node)
+            data_ref = meta.get('data', '')
+            if data_ref:
+                edges.append({'source': node_id, 'target': f"data/{data_ref}"})
+
             # Build edges from references
             refs = meta.get('references', [])
             if isinstance(refs, str):
@@ -212,6 +276,17 @@ def main():
 
     print(f"Scanning: {root}")
     graph = scan_folder(root)
+
+    # Scan data/ folder for research nodes
+    script_dir_tmp = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(script_dir_tmp)
+    data_dir = os.path.join(project_root, 'data')
+    research_projects = {}
+    if os.path.isdir(data_dir):
+        scan_data_folder(data_dir, graph['nodes'], graph['edges'], research_projects)
+        for k, v in research_projects.items():
+            graph['projects'][k] = {'nodes': v}
+
     print(f"Found {len(graph['nodes'])} docs across {len(graph['projects'])} project(s)")
     print(f"Found {len(graph['edges'])} references")
 

@@ -62,8 +62,9 @@ references:
 
 Notes on frontmatter:
 - `references` must be a YAML list with `- ` items, one per line. Omit the list entirely (or leave empty) if there are no references.
+- `data` is an optional field that links the doc to a research folder in `data/<value>/`. This creates an edge to the research node in the graph. Example: `data: product-competitors` links to `data/product-competitors/`.
 - Keep keys flat — `build.py` uses a simple line-based parser and does not handle nested YAML.
-- Do not add keys other than `name`, `description`, `date`, `type`, `references` unless the user asks; extras are ignored.
+- Do not add keys other than `name`, `description`, `date`, `type`, `references`, `data` unless the user asks; extras are ignored.
 
 Write the body in normal markdown — headings, paragraphs, bullets are all fine.
 
