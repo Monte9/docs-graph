@@ -253,6 +253,41 @@
   }
   #panel-body a { color: #3F6FD9; text-decoration: none; border-bottom: 1px solid #c8d4f0; }
   #panel-body a:hover { border-bottom-color: #3F6FD9; }
+
+  /* Tables */
+  #panel-body table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1em 0 1.4em;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  #panel-body thead th {
+    text-align: left;
+    font-weight: 600;
+    color: #1a1a25;
+    padding: 8px 12px;
+    border-bottom: 2px solid #d8d8ce;
+    background: #fafaf6;
+    white-space: nowrap;
+  }
+  #panel-body tbody td {
+    padding: 7px 12px;
+    border-bottom: 1px solid #eeeeea;
+    vertical-align: top;
+    color: #2a2a35;
+  }
+  #panel-body tbody tr:hover { background: #f8f8f4; }
+  #panel-body tbody td:first-child { font-weight: 600; white-space: nowrap; }
+
+  /* Checkbox lists (task lists) */
+  #panel-body ul li input[type="checkbox"] {
+    margin-right: 6px;
+    accent-color: #3F6FD9;
+  }
+
+  /* Improve readability for long prose */
+  #panel-body p, #panel-body li { line-height: 1.65; }
 </style>
 </head>
 <body>
