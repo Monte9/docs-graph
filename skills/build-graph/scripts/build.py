@@ -97,32 +97,61 @@ def scan_data_folder(data_path, nodes, edges, projects):
         if not os.path.isdir(folder_path) or folder.startswith('.') or folder.startswith('_'):
             continue
 
-        # Count source files and read their content
-        source_files = sorted(f for f in os.listdir(folder_path) if f.endswith('.md'))
-        has_facts = os.path.exists(os.path.join(folder_path, 'facts.csv'))
+        # Walk all subdirectories to find .md source files and facts.csv
+        all_source_files = []  # (subfolder_name, filename) tuples
+        top_level_md = []
+        has_facts = False
         fact_count = 0
 
-        # Build content from all source files for the side panel
-        content_parts = [f"# {folder.replace('-', ' ').title()}\n"]
-        content_parts.append(f"**{len(source_files)} source files**")
+        for item in sorted(os.listdir(folder_path)):
+            item_path = os.path.join(folder_path, item)
+            if item == 'facts.csv':
+                has_facts = True
+                with open(item_path, 'r', encoding='utf-8') as f:
+                    fact_count = max(0, sum(1 for line in f if line.strip()) - 1)
+            elif item.endswith('.md'):
+                top_level_md.append(item)
+            elif os.path.isdir(item_path) and not item.startswith('.'):
+                # Scan subdirectory for .md files
+                sub_files = sorted(f for f in os.listdir(item_path) if f.endswith('.md'))
+                for sf in sub_files:
+                    all_source_files.append((item, sf))
+
+        total_sources = len(top_level_md) + len(all_source_files)
+
+        # Build content for the side panel
+        display_name = folder.replace('-', ' ').title()
+        content_parts = [f"# {display_name}\n\n"]
+        content_parts.append(f"**{total_sources} source files**")
         if has_facts:
-            # Count rows in facts.csv (minus header)
-            facts_path = os.path.join(folder_path, 'facts.csv')
-            with open(facts_path, 'r', encoding='utf-8') as f:
-                fact_count = max(0, sum(1 for line in f if line.strip()) - 1)
             content_parts.append(f" | **{fact_count} facts**")
         content_parts.append('\n\n')
 
-        # List source files as links
-        if source_files:
-            content_parts.append('## Sources\n')
-            for sf in source_files:
+        # Group sources by subdirectory
+        if all_source_files:
+            # Collect unique subdirectories in order
+            seen_subs = []
+            for sub, _ in all_source_files:
+                if sub not in seen_subs:
+                    seen_subs.append(sub)
+            for sub in seen_subs:
+                sub_display = sub.replace('-', ' ').title()
+                sub_sources = [sf for s, sf in all_source_files if s == sub]
+                content_parts.append(f"### {sub_display}\n")
+                for sf in sub_sources:
+                    name = sf.replace('.md', '').replace('-', ' ').title()
+                    content_parts.append(f"- {name}\n")
+                content_parts.append('\n')
+
+        if top_level_md:
+            if all_source_files:
+                content_parts.append('### Other\n')
+            for sf in top_level_md:
                 name = sf.replace('.md', '').replace('-', ' ').title()
                 content_parts.append(f"- {name}\n")
 
         node_id = f"data/{folder}"
-        display_name = folder.replace('-', ' ').title()
-        description = f"Research: {len(source_files)} sources"
+        description = f"Research: {total_sources} sources"
         if has_facts:
             description += f", {fact_count} facts"
 
