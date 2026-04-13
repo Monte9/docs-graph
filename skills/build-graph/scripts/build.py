@@ -19,6 +19,7 @@ import os
 import sys
 import json
 import re
+import shutil
 
 
 def parse_frontmatter(filepath):
@@ -333,6 +334,22 @@ def main():
         print(f"  {proj}: {len(data['nodes'])} docs")
 
     script_dir = os.path.dirname(os.path.abspath(__file__))
+
+    # Copy chart HTML files referenced by chart-type docs into _graph/charts/
+    charts_dir = os.path.join(script_dir, 'charts')
+    chart_count = 0
+    for node in graph['nodes']:
+        if node.get('chart') and node.get('path'):
+            # Chart HTML lives next to the .md doc in docs/
+            doc_dir = os.path.join(root, os.path.dirname(node['path']))
+            src = os.path.join(doc_dir, node['chart'])
+            if os.path.isfile(src):
+                os.makedirs(charts_dir, exist_ok=True)
+                dst = os.path.join(charts_dir, node['chart'])
+                shutil.copy2(src, dst)
+                chart_count += 1
+    if chart_count:
+        print(f"Copied {chart_count} chart(s) to {charts_dir}")
 
     # Write graph.json
     out_path = os.path.join(script_dir, 'graph.json')

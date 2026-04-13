@@ -336,11 +336,26 @@
     transition: background 0.12s;
     flex-shrink: 0;
   }
-  #chart-overlay-close:hover { background: #f0f0e8; color: #2a2a35; }
+  #chart-overlay-close:hover, #chart-overlay-download:hover { background: #f0f0e8; color: #2a2a35; }
+  #chart-overlay-download {
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: transparent;
+    color: #9a9aa8;
+    font-size: 18px;
+    cursor: pointer;
+    border-radius: 6px;
+    line-height: 1;
+    transition: background 0.12s;
+    flex-shrink: 0;
+    margin-right: 4px;
+  }
   #chart-iframe {
     flex: 1;
     border: none;
     width: 100%;
+    background: #f4f4f0;
   }
 </style>
 </head>
@@ -371,6 +386,7 @@
   <div id="chart-overlay-header">
     <div id="chart-overlay-type"></div>
     <div id="chart-overlay-name"></div>
+    <button id="chart-overlay-download" aria-label="Download" title="Download as image">⤓</button>
     <button id="chart-overlay-close" aria-label="Close">×</button>
   </div>
   <iframe id="chart-iframe"></iframe>
@@ -950,6 +966,9 @@ function init() {
   }
 
   document.getElementById('chart-overlay-close').addEventListener('click', closeChartOverlay);
+  document.getElementById('chart-overlay-download').addEventListener('click', () => {
+    chartIframe.contentWindow.postMessage({ action: 'downloadAsImage' }, '*');
+  });
 
   function openPanel(d) {
     // Chart-type docs open in full-screen overlay instead of side panel
