@@ -42,13 +42,15 @@ The graph viewer (`_graph/`) lives at the root of the user's mounted folder. Doc
 
 ## Bootstrapping into a new folder
 
-If the user's folder doesn't have `_graph/` and `docs/` yet, create them from the bundled scripts in this skill.
+The plugin expects three sibling directories at the root of the user's mounted folder: `_graph/`, `docs/`, and `data/`. If any are missing, create them before building. This layout is a hard requirement — documents outside `docs/` and research folders outside `data/` will not be picked up.
 
 ### Step 1: Create the directories
 
 ```bash
-mkdir -p <root>/_graph <root>/docs
+mkdir -p <root>/_graph <root>/docs <root>/data
 ```
+
+`data/` is created even if empty so the user has a clear place to drop research folders later.
 
 ### Step 2: Copy the scripts
 

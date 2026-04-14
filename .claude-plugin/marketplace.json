@@ -9,12 +9,12 @@
       "name": "docs-graph",
       "source": "./",
       "description": "Turn a folder of markdown documents into an interactive visual graph. Use AI to review, iterate on, and synthesize your thinking — then see how everything connects.",
-      "version": "1.2.0",
+      "version": "1.4.0",
       "author": {
         "name": "Monte Thakkar"
       },
       "license": "MIT",
-      "keywords": ["docs-graph", "graph", "markdown", "visualization", "documents"]
+      "keywords": ["docs-graph", "graph", "markdown", "visualization", "documents", "knowledge", "notes"]
     }
   ]
 }

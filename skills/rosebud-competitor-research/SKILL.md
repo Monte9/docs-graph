@@ -1,9 +1,9 @@
 ---
-name: competitor-research
-description: "Research a competitor following the Rosebud competitive research system. Use when the user says 'research <competitor>', 'analyze <competitor>', 'competitive research on X', 'research wysa', 'research quenza', or similar. Delegates to the dimensions reference doc — all research instructions (what to measure, how to structure the writeup, voice rules) live there."
+name: rosebud-competitor-research
+description: "Research a competitor following the Rosebud competitive research system (mental-health practitioner tools). Use when a Rosebud team member says 'research <competitor>', 'analyze <competitor>', 'competitive research on X', 'research wysa', 'research quenza', or similar. Delegates to the dimensions reference doc — all research instructions (what to measure, how to structure the writeup, voice rules) live there. Rosebud-specific: not intended for general-purpose competitor research."
 ---
 
-# Competitor Research
+# Rosebud Competitor Research
 
 This skill is a thin executor. The knowledge lives in the reference doc.
 

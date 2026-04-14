@@ -9,7 +9,7 @@ Usage:
     python build.py /path/to/docs       # scans a specific folder
 
 Project grouping:
-    - If run from inside a project folder (e.g., rosebud/_graph/),
+    - If run from inside a project folder (e.g., my-project/_graph/),
       all docs belong to that project (named after the folder).
     - If run from a parent strategy folder containing multiple projects,
       each subfolder is its own project.

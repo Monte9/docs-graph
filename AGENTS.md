@@ -4,28 +4,35 @@ This file is for AI agents working on this repo. If you're a human, see README.m
 
 ## What this is
 
-A Claude Cowork plugin called **docs-graph**. It has two skills:
+A Claude Cowork plugin called **docs-graph**. It has three skills:
 
 - **create-doc** (`skills/create-doc/SKILL.md`) — creates markdown documents with YAML frontmatter in the right format for the graph viewer
 - **build-graph** (`skills/build-graph/SKILL.md`) — sets up and rebuilds an interactive HTML graph viewer that visualizes documents and their references
+- **rosebud-competitor-research** (`skills/rosebud-competitor-research/SKILL.md`) — researches competitors following the Rosebud competitive research system. Deliberately Rosebud-specific (mental-health practitioner tools); not intended for general-purpose competitor research
 
 ## Repo structure
 
 ```
 docs-graph/
-├── .claude-plugin/plugin.json   # plugin manifest (name, version, description)
+├── .claude-plugin/
+│   ├── plugin.json              # plugin manifest (name, version, description)
+│   └── marketplace.json         # marketplace entry (keep version in sync with plugin.json)
 ├── skills/
 │   ├── create-doc/
 │   │   └── SKILL.md             # instructions for creating docs
-│   └── build-graph/
-│       ├── SKILL.md             # instructions for setting up/rebuilding the graph
-│       └── scripts/
-│           ├── build.py         # Python script that scans docs/ and generates graph data
-│           └── index.html       # D3.js viewer template (data gets embedded by build.py)
+│   ├── build-graph/
+│   │   ├── SKILL.md             # instructions for setting up/rebuilding the graph
+│   │   └── scripts/
+│   │       ├── build.py         # Python script that scans docs/ and generates graph data
+│   │       └── index.html       # D3.js viewer template (data gets embedded by build.py)
+│   └── rosebud-competitor-research/
+│       ├── SKILL.md             # thin executor for Rosebud competitor research
+│       └── dimensions.md        # reference doc: 19 dimensions, doc structure, writing rules
 ├── README.md                    # human-facing docs
 ├── AGENTS.md                    # this file
-├── build.sh                     # packages the plugin into a .plugin file
-└── .gitignore                   # excludes .plugin files and .DS_Store
+├── setup.sh                     # LOCAL DEV ONLY — symlinks ~/docs, ~/data into repo
+├── build.sh                     # packages the plugin into a .zip file
+└── .gitignore                   # excludes .plugin files, .zip, and local dev output
 ```
 
 ## How the folder layout works when installed
@@ -33,7 +40,7 @@ docs-graph/
 When a user installs this plugin and mounts a folder, the expected layout is:
 
 ```
-<root>/                    ← whatever folder the user mounts (e.g. "Rosebud")
+<root>/                    ← whatever folder the user mounts
 ├── _graph/                ← graph viewer at the root level
 │   ├── build.py
 │   ├── index.html

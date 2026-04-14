@@ -20,7 +20,7 @@ A Claude Cowork plugin that turns a folder of markdown documents into an interac
 
 ## Usage
 
-1. Select a folder for your project (e.g. "Rosebud", "Q2 Planning", anything)
+1. Select a folder for your project (e.g. "my-notes", "Q2 Planning", anything)
 2. Ask Claude to "set up the graph viewer"
 3. Write docs or ask Claude to create them for you
 4. Open `_graph/index.html` in your browser
@@ -38,14 +38,20 @@ The version number on the plugin page shows which version you have installed.
 
 ## How it's organized
 
+The plugin expects three sibling directories at the root of your folder. `docs/` and `data/` are required; `_graph/` is auto-generated.
+
 ```
 your-folder/
 ├── _graph/           ← the viewer lives here (auto-generated)
-└── docs/             ← your documents go here
-    ├── 2026-03-01/
-    │   └── synthesis-kickoff.md
-    └── 2026-04-10/
-        └── analysis-review.md
+├── docs/             ← your documents go here
+│   ├── 2026-03-01/
+│   │   └── synthesis-kickoff.md
+│   └── 2026-04-10/
+│       └── analysis-review.md
+└── data/             ← optional research data folders
+    └── product-research/
+        ├── source1.md
+        └── facts.csv
 ```
 
 ## Document format
