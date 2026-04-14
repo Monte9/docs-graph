@@ -318,9 +318,13 @@ def main():
     graph = scan_folder(root)
 
     # Scan data/ folder for research nodes
-    script_dir_tmp = os.path.dirname(os.path.abspath(__file__))
-    project_root = os.path.dirname(script_dir_tmp)
-    data_dir = os.path.join(project_root, 'data')
+    # Accept optional second arg for data path, otherwise resolve from project root
+    if len(sys.argv) > 2:
+        data_dir = sys.argv[2]
+    else:
+        script_dir_tmp = os.path.dirname(os.path.abspath(__file__))
+        project_root = os.path.dirname(script_dir_tmp)
+        data_dir = os.path.join(project_root, 'data')
     research_projects = {}
     if os.path.isdir(data_dir):
         scan_data_folder(data_dir, graph['nodes'], graph['edges'], research_projects)
