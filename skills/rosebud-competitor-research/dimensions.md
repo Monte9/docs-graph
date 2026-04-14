@@ -91,27 +91,116 @@ Pull from that list when deciding what to work on.
 
 ## Recommended Doc Structure
 
-Each competitor doc should follow this structure. Sections map to one or more
-dimensions defined below.
+Each competitor doc mirrors the dimension taxonomy directly: three top-level
+category sections (Strategic, Product, Content), each with one subsection per
+dimension. Dimension subsection headings use the human-readable dimension name
+exactly as it appears below (e.g. "Access Model", "EHR Integration",
+"Channels & Distribution"). This keeps docs scannable and makes every fact
+land in one obvious place.
 
-1. **Executive Summary** — one paragraph under 120 words. What the product is,
-   who it serves, pricing range, review ratings, top 2-3 features, compliance
-   posture. A reader should get the full picture here without scrolling.
-2. **Market Positioning & Reviews** — overall ratings, verbatim quotes with
-   attribution, strengths and weaknesses drawn from real reviews.
-3. **Practice Setting Fit** — two subsections only: Direct to Practitioner
-   (solo and group) and Institutional / Platform-Employed.
-4. **Modality Fit** — modality orientation, explicitly supported modalities,
-   gaps.
-5. **Pricing** — tiers, plans, trial info.
-6. **Key Features** — single combined section with four subsections:
-   Assignment & Content Delivery, Client-Facing Experience, Therapist
-   Visibility & Between-Session Data, Automation & Workflows.
-7. **Compliance & Security** — HIPAA, GDPR, encryption, BAA availability,
-   SOC 2 status. Separate line for EHR integrations.
-8. **Content & Distribution** — channels, topics, practitioner resources,
-   community (maps to the four Content dimensions).
-9. **References & Sources** — numbered list with URLs and access dates.
+```
+1. Executive Summary       one paragraph, under 120 words.
+2. Strategic
+   - Access Model
+   - Business Model
+   - Pricing
+   - Compliance & Security
+   - Modality Fit
+   - Practitioner Messaging
+3. Product
+   - Between-Session Features
+   - Platforms
+   - Data Sharing
+   - AI Capabilities
+   - EHR Integration
+   - In-Product Content Library
+   - Content Sourcing
+   - Clinical Evidence
+   - Safety and Crisis Handling
+4. Content
+   - Channels & Distribution
+   - Content Topics
+   - Practitioner Resources
+   - Community
+5. References & Sources    numbered list with URLs and access dates.
+```
+
+**Section rules**
+
+- Executive Summary is one paragraph under 120 words: what the product is, who
+  it serves, pricing range, review ratings, top 2-3 features, compliance posture.
+- Every one of the 19 dimension subsections must appear, even if the answer is
+  "unknown" or "N/A". Do not drop a subsection because data is unavailable —
+  record the gap explicitly so comparisons stay complete.
+- Review ratings (Capterra, G2, Trustpilot) and verbatim quotes live under
+  **Practitioner Messaging** (they reveal positioning and reception).
+- References & Sources is a numbered list; every factual claim in the body must
+  trace to a URL in this list.
+
+**Dimension subsection format**
+
+Every dimension subsection starts with a 2-column Markdown table that captures
+the structured, extractable facts for that dimension. Below the table, add a
+short prose block (2-6 sentences or a bulleted list) with evidence, nuance, and
+verbatim quotes. No further nested headings inside a subsection. The inline
+`**field_name**: value` tag from earlier drafts is retired — the table is now
+the single source of structured truth.
+
+Table shape:
+
+- Left column is labeled `Field`. Right column is labeled `Value`.
+- The first row is always the canonical `field_name` from the dimension (e.g.
+  `compliance`, `access_model`, `ai_capabilities`) with a concise summary value.
+- Follow-up rows break out the key attributes the dimension calls for (e.g.
+  HIPAA, BAA, GDPR, SOC 2 for Compliance & Security; HIPAA, BAA, etc.). Use
+  controlled values from the dimension definition where possible.
+- If a fact is unavailable, write `unknown` (not blank, not N/A unless the
+  attribute truly does not apply).
+
+Example — Compliance & Security:
+
+```markdown
+### Compliance & Security
+
+| Field | Value |
+|---|---|
+| compliance | HIPAA + GDPR + CCPA + BAA; SOC 2 unknown |
+| HIPAA | Yes |
+| BAA | Available on request |
+| GDPR | Yes |
+| CCPA | Yes |
+| SOC 2 | Unknown |
+| Encryption at rest | Yes |
+| Encryption in transit | Yes |
+| Auto-logout | 30 minutes |
+
+HIPAA, GDPR, and CCPA compliant. BAA available on request via info@quenza.com,
+signed by a founder. Encryption at rest and in transit. "Privacy by Design"
+cited on marketing pages. SOC 2 status not confirmed in the scraped sources.
+```
+
+Example — Pricing:
+
+```markdown
+### Pricing
+
+| Field | Value |
+|---|---|
+| pricing | $47–$124/month, public, self-serve |
+| Public pricing | Yes |
+| Free tier | No |
+| Free trial | Yes (length unknown) |
+| Annual discount | Available (% unknown) |
+| Entry price | ~$47/month (Starter) |
+| Top tier | Team (price unknown) |
+| Seat expansion | $15/month per 5 clients |
+
+Four tiers: Starter (~$47), Plus (~$87), Pro, Team. Group practices use the
+Team plan and buy extra client seats in blocks of 5.
+```
+
+Keep tables short — aim for 4-10 rows. The goal is a scannable fact card plus a
+paragraph of context, not an exhaustive schema.
 
 ---
 
@@ -133,7 +222,6 @@ organizational contract, marketplace membership, or employer relationship?
 **What to look for**: Signup flow, pricing page availability, enterprise-only
 gating, marketplace requirements, credentialing requirements.
 
-**Doc section**: Practice Setting Fit
 
 ---
 
@@ -151,7 +239,6 @@ fee, enterprise contract, marketplace spread, consumer subscription, ad-
 supported), who pays (practitioner, employer, payor, consumer), whether there
 is a consumer product alongside the practitioner product.
 
-**Doc section**: Practice Setting Fit, Pricing
 
 ---
 
@@ -166,7 +253,6 @@ This is about accessibility for our target buyer, not enterprise pricing.
 cost for groups, free tier or trial availability, annual discount, whether
 pricing is public or requires a sales call.
 
-**Doc section**: Pricing
 
 ---
 
@@ -182,7 +268,6 @@ buyers who require SOC 2 or GDPR.
 SOC 2 Type I or Type II, encryption standards (at rest, in transit), data
 residency, third-party audits, published security documentation.
 
-**Doc section**: Compliance & Security
 
 ---
 
@@ -203,7 +288,6 @@ modality-agnostic infrastructure or modality-specific.
 psychodynamic, somatic, solution-focused, motivational interviewing, mindfulness,
 relational/humanistic, coaching.
 
-**Doc section**: Modality Fit
 
 ---
 
@@ -219,9 +303,6 @@ in the market and where there are messaging gaps we can exploit.
 emphasized (flexibility, admin relief, outcomes, income, community), AI stance
 (augmentation vs. replacement), what practitioner segments they target vs.
 ignore.
-
-**Doc section**: Market Positioning & Reviews (plus web research on
-practitioner-facing landing pages).
 
 ---
 
@@ -254,7 +335,6 @@ ones the product supports.
 - **Secure messaging**: Can client and therapist message between sessions?
 - **Push notifications/reminders**: Does the product nudge the client?
 
-**Doc section**: Key Features
 
 ---
 
@@ -267,9 +347,6 @@ covers both the client-facing side and the practitioner-facing side.
 
 **What to look for**: Native iOS app, native Android app, web app (responsive
 or desktop-only), practitioner dashboard/portal, app store presence and ratings.
-
-**Doc section**: Key Features > Client-Facing Experience (plus app store
-research).
 
 ---
 
@@ -287,7 +364,6 @@ entries, mood data, or AI conversation logs. Whether there are dashboards,
 alerts, or session prep summaries. Whether sharing is on by default or opt-in.
 Whether AI interactions are visible to the therapist.
 
-**Doc section**: Key Features > Therapist Visibility & Between-Session Data
 
 ---
 
@@ -305,9 +381,6 @@ for clients, AI clinical notes or documentation, AI-powered matching or
 recommendations, ML-based outcome prediction, NLP sentiment analysis, human
 escalation pathways for AI interactions.
 
-**Doc section**: Key Features (any subsection), plus any AI-specific mentions
-in Executive Summary or Market Positioning.
-
 ---
 
 ## 11. EHR Integration
@@ -323,7 +396,6 @@ a lower adoption barrier.
 Zapier/webhook support, is the product itself an EHR (making this N/A), data
 import/export capabilities.
 
-**Doc section**: Compliance & Security, Key Features
 
 ---
 
@@ -342,9 +414,6 @@ content is own-produced or licensed from third parties. Whether content is
 therapist-assignable or client-self-serve only. Named content creators or
 clinical authors.
 
-**Doc section**: Key Features > Assignment & Content Delivery and
-Client-Facing Experience (plus app store descriptions).
-
 ---
 
 ## 13. Content Sourcing
@@ -361,7 +430,6 @@ worksheet library.
 authors or clinical teams, content partnerships, practitioner-contributed
 content, AI-generated content, content update cadence.
 
-**Doc section**: Key Features, plus marketing pages and press coverage.
 
 ---
 
@@ -377,10 +445,8 @@ separates evidence-backed products from marketing-backed ones.
 **What to look for**: Published RCTs (journal, sample size, outcomes), peer-
 reviewed studies, white papers with methodology, aggregate outcome data with
 sample sizes, clinical advisory board, university research partnerships,
-FDA clearance or breakthrough device designation.
-
-**Doc section**: Executive Summary, Compliance & Security, References. Also
-check PubMed/PMC directly.
+FDA clearance or breakthrough device designation. Also check PubMed/PMC
+directly.
 
 ---
 
@@ -397,10 +463,8 @@ published stance on AI safety.
 **What to look for**: Crisis detection and escalation pathways (hotline
 routing, therapist alerts, emergency contacts), AI safety guardrails and
 published AI principles, human-in-the-loop requirements, content moderation,
-suicide/self-harm protocols, published safety documentation.
-
-**Doc section**: Key Features > Automation & Workflows, Compliance & Security,
-and any AI principles or safety pages.
+suicide/self-harm protocols, published safety documentation. Also check any
+AI principles or safety pages on the competitor's site.
 
 ---
 
@@ -423,7 +487,6 @@ social networks and content channels vs. single-channel bets.
 X/Twitter, TikTok, YouTube, podcast, email newsletter, webinars, conferences,
 practitioner-specific landing pages, founder/leadership thought leadership.
 
-**Doc section**: Content & Distribution
 
 ---
 
@@ -440,7 +503,6 @@ newsletter content, educational resource topics. Look for both clinical topics
 (modalities, outcomes, evidence) and business topics (billing, marketing,
 practice growth, burnout).
 
-**Doc section**: Content & Distribution
 
 ---
 
@@ -457,7 +519,6 @@ practitioner enablement vs. just selling a product.
 NBCC, etc.), product training, clinical best practice guides, downloadable
 templates or frameworks, research libraries, case studies, cost (free vs. paid).
 
-**Doc section**: Content & Distribution
 
 ---
 
@@ -474,7 +535,6 @@ programs, practitioner advisory boards. Also capture any CTAs to join
 practitioner-specific newsletters or groups (signup URLs, where they appear,
 what's promised).
 
-**Doc section**: Content & Distribution
 
 ---
 
