@@ -3,12 +3,12 @@
 ## Overview
 
 This document is the single source of truth for how we research and evaluate
-competitors in the O3 "Who Can Use It" analysis. It defines 19 dimensions
+competitors in the O3 "Who Can Use It" analysis. It defines 20 dimensions
 across three categories (strategic, product, content), a recommended doc
 structure, and the writing rules we follow.
 
 **The mental model is simple**: one doc per competitor. Each doc is
-structured around these 19 dimensions and serves as both the qualitative
+structured around these 20 dimensions and serves as both the qualitative
 writeup and the structured data. Comparison tables, clusters, and landscape
 charts can be generated from the docs on demand — no separate facts database
 to maintain in parallel.
@@ -105,21 +105,22 @@ land in one obvious place.
    - Business Model
    - Pricing
    - Compliance & Security
-   - Modality Fit
    - Practitioner Messaging
 3. Product
    - Between-Session Features
    - Platforms
-   - Data Sharing
-   - AI Capabilities
+   - Therapist-in-the-Loop Model
+   - How is AI Used
    - EHR Integration
    - In-Product Content Library
-   - Content Sourcing
-   - Clinical Evidence
+   - Clinical Evidence (AI)
    - Safety and Crisis Handling
+   - Customer Pain Points
 4. Content
    - Channels & Distribution
    - Content Topics
+   - Practitioner Type
+   - Modality Content
    - Practitioner Resources
    - Community
 5. References & Sources    numbered list with URLs and access dates.
@@ -129,7 +130,7 @@ land in one obvious place.
 
 - Executive Summary is one paragraph under 120 words: what the product is, who
   it serves, pricing range, review ratings, top 2-3 features, compliance posture.
-- Every one of the 19 dimension subsections must appear, even if the answer is
+- Every one of the 20 dimension subsections must appear, even if the answer is
   "unknown" or "N/A". Do not drop a subsection because data is unavailable —
   record the gap explicitly so comparisons stay complete.
 - Review ratings (Capterra, G2, Trustpilot) and verbatim quotes live under
@@ -194,6 +195,7 @@ Example — Pricing:
 | Entry price | ~$47/month (Starter) |
 | Top tier | Team (price unknown) |
 | Seat expansion | $15/month per 5 clients |
+| HSA/FSA accepted | Unknown |
 
 Four tiers: Starter (~$47), Plus (~$87), Pro, Team. Group practices use the
 Team plan and buy extra client seats in blocks of 5.
@@ -271,27 +273,7 @@ residency, third-party audits, published security documentation.
 
 ---
 
-## 5. Modality Fit
-
-**Field**: `modality_fit` | **Category**: `strategic`
-
-**Definition**: Which therapeutic modalities does this product support well, and
-which are underserved? Most tools are biased toward structured approaches (CBT,
-DBT, ACT). Rosebud's opportunity is strongest in modalities that current tools
-ignore.
-
-**What to look for**: Explicitly supported modalities (with evidence), modality
-limitations or biases in the product design, whether the tool is
-modality-agnostic infrastructure or modality-specific.
-
-**Modalities to check for specifically**: CBT, DBT, ACT, EMDR, IFS, narrative,
-psychodynamic, somatic, solution-focused, motivational interviewing, mindfulness,
-relational/humanistic, coaching.
-
-
----
-
-## 6. Practitioner Messaging
+## 5. Practitioner Messaging
 
 **Field**: `practitioner_messaging` | **Category**: `strategic`
 
@@ -314,7 +296,7 @@ specific, observable features that can be compared across competitors.
 
 ---
 
-## 7. Between-Session Features
+## 6. Between-Session Features
 
 **Field**: `between_session_features` | **Category**: `product`
 
@@ -338,7 +320,7 @@ ones the product supports.
 
 ---
 
-## 8. Platforms
+## 7. Platforms
 
 **Field**: `platforms` | **Category**: `product`
 
@@ -350,40 +332,63 @@ or desktop-only), practitioner dashboard/portal, app store presence and ratings.
 
 ---
 
-## 9. Data Sharing
+## 8. Therapist-in-the-Loop Model
 
-**Field**: `data_sharing` | **Category**: `product`
+**Field**: `loop_mode` | **Category**: `product`
 
-**Definition**: What data flows between the client and the therapist, and in
-what direction? This is about visibility and control: does the therapist see
-client between-session activity? Does the client see therapist notes? Is AI
-interaction data shared or hidden?
+**Definition**: Where does the therapist sit relative to the client's
+between-session activity? Some products require a therapist to assign every
+activity (tight loop); others let clients self-serve without clinician
+involvement (loose loop or no loop). This dimension captures both the structural
+posture (is a therapist required at all?) and the data flow (what does the
+therapist see, and when?). Critical for understanding whether a competitor is a
+therapist tool, a consumer tool, or a hybrid.
 
-**What to look for**: Whether therapist sees client homework responses, journal
-entries, mood data, or AI conversation logs. Whether there are dashboards,
-alerts, or session prep summaries. Whether sharing is on by default or opt-in.
-Whether AI interactions are visible to the therapist.
+**What to look for**: Whether a therapist is required for the client to use the
+product, how activities get assigned (therapist-pushed, client-pulled, auto-
+sequenced), whether the therapist sees client homework responses, journal
+entries, mood data, or AI conversation logs, whether there are dashboards,
+alerts, or session prep summaries, whether sharing is on by default or opt-in,
+whether AI interactions are visible to the therapist.
+
+**loop_mode values**: `tight` (therapist assigns and reviews everything),
+`loose` (therapist optional or observer only), `none` (consumer product with no
+therapist surface), `hybrid` (both modes supported).
 
 
 ---
 
-## 10. AI Capabilities
+## 9. How is AI Used
 
 **Field**: `ai_capabilities` | **Category**: `product`
 
-**Definition**: How is AI/ML used in the product? This is a spectrum from "no
-AI at all" to "AI is the core product." Important for understanding where
-Rosebud's AI-native approach is differentiated vs. where competitors are catching
-up.
+**Definition**: Where in the product does AI actually do work, and how central
+is it? Rosebud is an AI-native product, so understanding where each competitor
+places AI in their value chain is a core differentiation axis. The key split is
+client-facing AI (point-of-care — AI that interacts directly with clients or
+generates clinical content) vs. back-office AI (operational — AI that reduces
+therapist admin like notes, scheduling, billing).
 
-**What to look for**: AI-generated content or activities, AI chatbot/companion
-for clients, AI clinical notes or documentation, AI-powered matching or
-recommendations, ML-based outcome prediction, NLP sentiment analysis, human
-escalation pathways for AI interactions.
+**What to look for**: Break down AI usage into three buckets:
+
+- **Client-facing AI (point-of-care)**: AI chatbot/companion for clients,
+  AI-generated exercises or journaling prompts, AI-powered reflections or
+  psychoeducation, in-session AI copilots clients interact with directly.
+- **Back-office AI (operational)**: AI-generated progress notes, AI session
+  summaries, AI treatment plan drafting, AI scheduling/intake, billing code
+  suggestion, marketing copy generation for practitioners.
+- **Other AI**: Matching/recommendations, ML outcome prediction, NLP sentiment
+  analysis on client text, risk/crisis detection, anomaly flags for the
+  therapist.
+
+**What else to capture**: Degree of autonomy (human-in-the-loop vs.
+autonomous), whether AI output is therapist-reviewable or ships directly to
+the client, named models or partnerships (OpenAI, Anthropic, proprietary),
+published AI principles, human escalation pathways for AI interactions.
 
 ---
 
-## 11. EHR Integration
+## 10. EHR Integration
 
 **Field**: `ehr_integration` | **Category**: `product`
 
@@ -399,58 +404,56 @@ import/export capabilities.
 
 ---
 
-## 12. In-Product Content Library
+## 11. In-Product Content Library
 
 **Field**: `in_product_content` | **Category**: `product`
 
 **Definition**: What pre-built content does the product offer inside the app
-for clients or practitioners to use? This is distinct from marketing content
-(blog posts, webinars). It captures the depth and breadth of clinical or
-wellness content that ships with the product itself.
+for clients or practitioners to use, and where does that content come from?
+This is distinct from marketing content (blog posts, webinars). It captures
+both the depth/breadth of clinical or wellness content shipped with the
+product and the sourcing model behind it, which is a real defensibility axis —
+1,000 own-produced exercises is a different moat than a generic CBT worksheet
+library.
 
-**What to look for**: Number and type of exercises, meditations, worksheets,
-psychoeducation modules, or activity templates available in-app. Whether
-content is own-produced or licensed from third parties. Whether content is
-therapist-assignable or client-self-serve only. Named content creators or
-clinical authors.
+**What to look for**:
 
----
-
-## 13. Content Sourcing
-
-**Field**: `content_sourcing` | **Category**: `product`
-
-**Definition**: Where does the in-product content come from? Own-produced at
-scale, crowdsourced from practitioners, licensed from publishers, or generated
-by AI? This reveals the content moat: a company with 1,000 own-produced
-exercises has a different defensibility profile than one using a generic CBT
-worksheet library.
-
-**What to look for**: Whether content is proprietary or third-party, named
-authors or clinical teams, content partnerships, practitioner-contributed
-content, AI-generated content, content update cadence.
-
+- **Library depth**: Number and type of exercises, meditations, worksheets,
+  psychoeducation modules, or activity templates available in-app.
+- **Assignability**: Whether content is therapist-assignable, auto-sequenced
+  into pathways, or client-self-serve only.
+- **Sourcing**: Whether content is proprietary/own-produced, licensed from
+  third parties, crowdsourced from practitioners, or AI-generated.
+- **Authors**: Named content creators, clinical authors, content partnerships,
+  clinical advisory input.
+- **Update cadence**: How often new content ships.
 
 ---
 
-## 14. Clinical Evidence
+## 12. Clinical Evidence (AI)
 
-**Field**: `clinical_evidence` | **Category**: `product`
+**Field**: `clinical_evidence_ai` | **Category**: `product`
 
-**Definition**: What published clinical evidence supports this product? This is
-a real differentiator axis: some competitors have multiple peer-reviewed RCTs,
-others make claims without citations. For a landscape visualization, this
-separates evidence-backed products from marketing-backed ones.
+**Definition**: What published evidence does the competitor cite specifically
+for their AI-powered features or AI-delivered continuous care? Rosebud's thesis
+is that AI can deliver clinical value between sessions, so the relevant
+evidence bar is not "does the underlying modality work" (CBT efficacy is
+well-established) but "does this AI touchpoint actually help clients."
+This dimension isolates AI-specific evidence so we can see which competitors
+are making substantiated AI claims vs. marketing claims.
 
-**What to look for**: Published RCTs (journal, sample size, outcomes), peer-
-reviewed studies, white papers with methodology, aggregate outcome data with
-sample sizes, clinical advisory board, university research partnerships,
-FDA clearance or breakthrough device designation. Also check PubMed/PMC
-directly.
+**What to look for**: Published RCTs or peer-reviewed studies on the AI
+component specifically (journal, sample size, outcomes), white papers on AI
+efficacy or safety with methodology, aggregate outcome data tied to AI
+engagement (not generic program completion), clinical advisory input on AI
+features, university research partnerships evaluating AI touchpoints, FDA
+clearance or breakthrough device designation for AI functionality. Also check
+PubMed/PMC directly for the product name combined with "AI", "chatbot", or
+"conversational agent".
 
 ---
 
-## 15. Safety and Crisis Handling
+## 13. Safety and Crisis Handling
 
 **Field**: `safety` | **Category**: `product`
 
@@ -468,6 +471,28 @@ AI principles or safety pages on the competitor's site.
 
 ---
 
+## 14. Customer Pain Points
+
+**Field**: `customer_pain_points` | **Category**: `product`
+
+**Definition**: What specific complaints, frustrations, and unmet needs do
+customers (both practitioners and their clients) express about this product?
+Captured from review sites, app store reviews, and community threads. This
+dimension surfaces product gaps and messaging opportunities — pain points are
+often the clearest read on where a competitor is under-delivering and where
+Rosebud can position against them.
+
+**What to look for**: Verbatim complaints from practitioner reviews (Capterra,
+G2, Trustpilot, Choosing Therapy) and client reviews (iOS App Store, Google
+Play). Common themes: pricing friction, onboarding difficulty, missing
+features, poor mobile experience, clunky UX, support responsiveness, billing
+bugs, AI quality issues, lack of customization, integrations missing, client
+adoption struggles. Capture at least 2-3 verbatim quotes with source and date.
+Also note positive reviews that reveal what users *wished* existed (features
+requested but not present).
+
+---
+
 # Content Dimensions
 
 These dimensions capture how the competitor reaches, engages, and retains
@@ -475,7 +500,7 @@ practitioners through content, community, and education.
 
 ---
 
-## 16. Channels & Distribution
+## 15. Channels & Distribution
 
 **Field**: `channels` | **Category**: `content`
 
@@ -490,7 +515,7 @@ practitioner-specific landing pages, founder/leadership thought leadership.
 
 ---
 
-## 17. Content Topics
+## 16. Content Topics
 
 **Field**: `content_topics` | **Category**: `content`
 
@@ -506,7 +531,57 @@ practice growth, burnout).
 
 ---
 
-## 18. Practitioner Resources
+## 17. Practitioner Type
+
+**Field**: `practitioner_type` | **Category**: `content`
+
+**Definition**: What terms does the competitor actually use on their landing
+pages, nav, and marketing to describe the professionals they serve? This is a
+messaging/positioning read — "therapist" vs. "coach" vs. "clinician" vs.
+"provider" signals who the product is pitched at and often predicts the
+regulatory posture (licensed clinical work vs. coaching vs. wellness). Useful
+for clustering competitors by target practitioner and for spotting messaging
+gaps Rosebud can exploit.
+
+**What to look for**: Exact terms used on the homepage, practitioner/pricing
+nav, signup flows, and testimonial sections. Count frequency (which term
+dominates). Look for whether they call out specific license types (LMFT, LCSW,
+LPC, PsyD/PhD), role types (therapist, counselor, psychologist, psychiatrist,
+coach, wellness professional, health coach), or setting (solo practice, group
+practice, clinic, enterprise). Record any explicit exclusions (e.g., "we do not
+serve medical professionals").
+
+**Controlled values to capture**: `therapist`, `counselor`, `psychologist`,
+`psychiatrist`, `clinician`, `provider`, `coach`, `wellness professional`,
+`practitioner` (generic), other.
+
+---
+
+## 18. Modality Content
+
+**Field**: `modality_content` | **Category**: `content`
+
+**Definition**: Which therapeutic modalities show up in the competitor's
+content, library, and marketing, and which are absent? Most tools are biased
+toward structured, manualized approaches (CBT, DBT, ACT). Rosebud's opportunity
+is strongest in modalities that current tools ignore. This dimension lives in
+Content (not Strategic or Product) because it reads primarily off the
+marketing surface and the in-product content library — what the competitor
+*talks about* and *ships content for*, not necessarily deep product support.
+
+**What to look for**: Explicitly named modalities in blog posts, landing page
+copy, exercise/worksheet categories, and clinical content descriptions.
+Modality-specific landing pages. Whether the tool is modality-agnostic
+infrastructure or modality-specific. Any claims tying their content to a
+specific framework.
+
+**Modalities to check for specifically**: CBT, DBT, ACT, EMDR, IFS, narrative,
+psychodynamic, somatic, solution-focused, motivational interviewing,
+mindfulness, relational/humanistic, coaching.
+
+---
+
+## 19. Practitioner Resources
 
 **Field**: `practitioner_resources` | **Category**: `content`
 
@@ -522,7 +597,7 @@ templates or frameworks, research libraries, case studies, cost (free vs. paid).
 
 ---
 
-## 19. Community
+## 20. Community
 
 **Field**: `community` | **Category**: `content`
 
