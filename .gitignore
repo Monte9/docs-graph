@@ -6,4 +6,5 @@
 docs
 data
 skills/build-graph/scripts/graph.json
+skills/build-graph/scripts/charts/
 _graph/

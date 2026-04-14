@@ -1,6 +1,6 @@
 {
   "name": "docs-graph",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "Turn a folder of markdown documents into an interactive visual graph. Use AI to review, iterate on, and synthesize your thinking — then see how everything connects.",
   "author": {
     "name": "Monte Thakkar"

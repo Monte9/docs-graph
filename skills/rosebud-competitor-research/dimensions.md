@@ -25,12 +25,16 @@ we cluster and compare across the full dataset later.
 Every competitor doc lives at:
 
 ```
-docs/competitors/<slug>.md
+data/competitors/<slug>.md
 ```
 
 Use a kebab-case slug based on the competitor name (e.g., `wysa`,
 `simple-practice`, `spring-health`). One file per competitor. No subfolders,
 no per-competitor folders, no separate sources file.
+
+The `data/competitors/` folder is rendered as a single `research` node in the
+graph. Synthesis docs reference it via `data: competitors` in their
+frontmatter.
 
 Each doc must have this frontmatter:
 

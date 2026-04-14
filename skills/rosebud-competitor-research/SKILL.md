@@ -30,7 +30,7 @@ Do the web research per the rules in the reference doc. Follow the Research Chec
 Write the competitor writeup to:
 
 ```
-docs/competitors/<slug>.md
+data/competitors/<slug>.md
 ```
 
 Frontmatter:
@@ -61,13 +61,13 @@ python3 _graph/build.py
 Summarize to the user:
 
 - Competitor researched
-- Path to the new doc: `docs/competitors/<slug>.md`
+- Path to the new doc: `data/competitors/<slug>.md`
 - Any dimensions where data was unavailable (noted as "unknown" or "N/A")
 - Any follow-ups (e.g., manual product screenshots)
 
 ## Incremental runs
 
-If `docs/competitors/<slug>.md` already exists, ask the user whether to refresh it or leave it alone. Do not silently overwrite.
+If `data/competitors/<slug>.md` already exists, ask the user whether to refresh it or leave it alone. Do not silently overwrite.
 
 ## Principle
 
