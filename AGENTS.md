@@ -88,41 +88,107 @@ The `data` field is optional — it links a doc to a research folder in `data/<v
 
 ## Local development
 
-For local dev, mount THIS repo folder (`~/Projects/docs-graph`) in Cowork. The skills are picked up directly from `skills/` — no need to install the plugin. You can edit skill files and scripts and changes take effect immediately.
+For local dev, mount **THIS repo folder** (`~/Projects/docs-graph`) in Cowork. The skills are picked up directly from `skills/` — no need to install the plugin. Edits take effect immediately.
 
-Run the setup script first to symlink your docs into the repo:
+### Prerequisites
+
+- Python 3 (no pip deps — `build.py` is stdlib only)
+- A folder of your real docs somewhere on disk (default `~/docs`); optionally a `~/data` folder for research data
+
+### One-time setup
+
+From the repo root:
 
 ```bash
 ./setup.sh                              # docs/ → ~/docs, data/ → ~/data
-./setup.sh ~/other/docs                 # docs/ → custom, data/ → ~/data
+./setup.sh ~/other/docs                 # docs/ → custom path, data/ → ~/data
 ./setup.sh ~/other/docs ~/other/data    # both custom
 ```
 
-After setup, the repo looks like:
+`setup.sh` symlinks your real `docs/` and `data/` into the repo so you can develop against real content. Both symlinks are gitignored.
+
+### Initial build
+
+Bootstrap `_graph/` the same way end users do — via the `build-graph` skill, or manually:
+
+```bash
+# Manual equivalent of what the build-graph skill does:
+mkdir -p _graph
+cp skills/build-graph/scripts/build.py   _graph/build.py
+cp skills/build-graph/scripts/index.html _graph/index.html
+python3 _graph/build.py
+```
+
+Then open `_graph/index.html` in a browser. No server needed.
+
+### Repo layout after setup
 
 ```
-docs-graph/                      ← mount this folder
-├── docs/ → ~/docs               ← symlink to your real docs (gitignored)
-├── data/ → ~/data               ← symlink to your research data (gitignored)
-├── _graph/                      ← graph output goes here (gitignored)
-│   ├── build.py
-│   └── index.html
-├── skills/                      ← edit these directly
-│   ├── build-graph/...
-│   └── create-doc/...
+docs-graph/                      ← mount this folder in Cowork
+├── docs/ → ~/docs               ← symlink (gitignored)
+├── data/ → ~/data               ← symlink (gitignored)
+├── _graph/                      ← generated output (gitignored, safe to delete)
+│   ├── build.py                 ← RUN COPY — do NOT edit here
+│   ├── index.html               ← RUN COPY — do NOT edit here (data is re-embedded)
+│   └── graph.json
+├── skills/                      ← SOURCE OF TRUTH — edit here
+│   ├── build-graph/
+│   │   ├── SKILL.md
+│   │   └── scripts/
+│   │       ├── build.py         ← template
+│   │       └── index.html       ← template
+│   ├── create-doc/SKILL.md
+│   └── rosebud-competitor-research/
+│       ├── SKILL.md
+│       └── dimensions.md
 └── ...
 ```
 
-This means one folder for everything: source code, real content via symlink, and graph output. `docs/`, `data/`, and `_graph/` are all gitignored — only the plugin source gets committed.
+**Critical distinction:** `skills/build-graph/scripts/{build.py,index.html}` are the canonical templates — what ships in the plugin. `_graph/{build.py,index.html}` are run-copies that the skill writes during bootstrap. **Edits to the viewer or build script go in `skills/build-graph/scripts/`. Never edit `_graph/` directly** — your changes get overwritten the next time the skill bootstraps, and they won't ship to users.
 
-### Workflow
+### Edit → test loop
 
-1. Edit skill files or viewer code in `skills/`
-2. Use the `create-doc` skill to add test docs to `docs/`
-3. Use the `build-graph` skill to rebuild `_graph/` — or run directly: `python3 skills/build-graph/scripts/build.py`
-4. Open `_graph/index.html` in a browser to verify
-5. Commit changes to `skills/`, `AGENTS.md`, etc. (docs/ and _graph/ are gitignored)
-6. Push to main → GitHub Actions builds a release → users sync the plugin
+For viewer/build script changes:
+
+```bash
+# 1. Edit the template
+$EDITOR skills/build-graph/scripts/index.html
+
+# 2. Copy template → run copy
+cp skills/build-graph/scripts/index.html _graph/index.html
+
+# 3. Rebuild (re-embeds GRAPH_DATA)
+python3 _graph/build.py
+
+# 4. Reload _graph/index.html in the browser
+```
+
+For doc-graph behavior changes (YAML parsing, data/ scanning, etc.):
+
+```bash
+cp skills/build-graph/scripts/build.py _graph/build.py
+python3 _graph/build.py
+```
+
+For skill prompt changes (SKILL.md, dimensions.md): no rebuild needed — Cowork reads them live from `skills/`.
+
+For adding test content:
+1. Use the `create-doc` skill to add docs to `docs/` (which is your `~/docs` via symlink)
+2. Run `python3 _graph/build.py` to pick them up
+
+### Blowing away local state
+
+`_graph/` is generated output — delete it anytime and re-bootstrap. Useful if the run copies drift from the templates:
+
+```bash
+rm -rf _graph && <rerun initial build steps above>
+```
+
+### Ship it
+
+1. Commit edits under `skills/` (and `AGENTS.md`, `README.md`, etc.)
+2. `docs/`, `data/`, and `_graph/` are gitignored — only plugin source gets committed
+3. Push to main → GitHub Actions builds a release → users sync the plugin
 
 ## Packaging
 
