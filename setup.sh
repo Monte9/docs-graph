@@ -54,6 +54,20 @@ else
     fi
 fi
 
+# ── Skills symlink ──
+SKILLS_SRC="$(cd "$(dirname "$0")" && pwd)/skills"
+
+for agent_dir in ~/.cursor/skills ~/.claude/skills ~/.codex/skills; do
+    [ -d "$(dirname "$agent_dir")" ] || continue
+    mkdir -p "$agent_dir"
+    for skill in "$SKILLS_SRC"/*/; do
+        [ -d "$skill" ] || continue
+        skill_name=$(basename "$skill")
+        ln -sfn "$skill" "$agent_dir/$skill_name"
+    done
+    echo "Linked docs-graph skills into $agent_dir/"
+done
+
 echo ""
 echo "Next steps:"
 echo "  1. Use the create-doc skill to add documents to docs/"

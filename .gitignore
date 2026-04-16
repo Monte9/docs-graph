@@ -1,6 +1,7 @@
 .DS_Store
 *.plugin
 *.zip
+tmp/
 
 # Local dev: test docs, research data, and graph output (not part of the plugin)
 docs
