@@ -1,2 +1,11 @@
+.DS_Store
+*.plugin
+*.zip
 tmp/
-docs-graph.zip
+
+# Local dev: test docs, research data, and graph output (not part of the plugin)
+docs
+data
+skills/build-graph/scripts/graph.json
+skills/build-graph/scripts/charts/
+_graph/
