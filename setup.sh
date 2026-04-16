@@ -20,14 +20,29 @@
 set -e
 cd "$(dirname "$0")"
 
-DOCS_TARGET="${1:-$HOME/docs}"
-DATA_TARGET="${2:-$HOME/data}"
+# Resolve the developer's real home. On a regular host this is just $HOME.
+# Inside a Cowork sandbox, $HOME is /sessions/<session-id>/ and the user's
+# actual files are mounted at $HOME/mnt/<username>/, so use that instead.
+DEV_HOME="$HOME"
+if [[ "$HOME" == /sessions/* ]] && [ -d "$HOME/mnt" ]; then
+    for mount_dir in "$HOME"/mnt/*/; do
+        if [ -d "$mount_dir" ]; then
+            DEV_HOME="${mount_dir%/}"
+            break
+        fi
+    done
+fi
+
+DOCS_TARGET="${1:-$DEV_HOME/docs}"
+DATA_TARGET="${2:-$DEV_HOME/data}"
 
 # ── docs/ symlink ──
-if [ -L "docs" ]; then
-    echo "docs/ symlink already exists → $(readlink docs)"
-elif [ -d "docs" ]; then
-    echo "docs/ directory already exists (not a symlink). Skipping."
+# Always refresh the symlink so the script is safe to re-run every session.
+# Cowork sandbox mount paths (/sessions/<session-id>/...) change between
+# sessions, so a previously-created symlink will often be stale. Only skip
+# if docs/ is a real directory — we don't want to clobber a real folder.
+if [ -d "docs" ] && [ ! -L "docs" ]; then
+    echo "docs/ is a real directory (not a symlink). Skipping."
 else
     DOCS_TARGET="$(cd "$DOCS_TARGET" 2>/dev/null && pwd || echo "$DOCS_TARGET")"
     if [ ! -d "$DOCS_TARGET" ]; then
@@ -35,21 +50,19 @@ else
         echo "Create it first or pass a different path."
         exit 1
     fi
-    ln -s "$DOCS_TARGET" docs
+    ln -sfn "$DOCS_TARGET" docs
     echo "Symlinked docs/ → $DOCS_TARGET"
 fi
 
 # ── data/ symlink ──
-if [ -L "data" ]; then
-    echo "data/ symlink already exists → $(readlink data)"
-elif [ -d "data" ]; then
-    echo "data/ directory already exists (not a symlink). Skipping."
+if [ -d "data" ] && [ ! -L "data" ]; then
+    echo "data/ is a real directory (not a symlink). Skipping."
 else
     DATA_TARGET="$(cd "$DATA_TARGET" 2>/dev/null && pwd || echo "$DATA_TARGET")"
     if [ ! -d "$DATA_TARGET" ]; then
         echo "No data/ target found at $DATA_TARGET — skipping (data/ is optional)."
     else
-        ln -s "$DATA_TARGET" data
+        ln -sfn "$DATA_TARGET" data
         echo "Symlinked data/ → $DATA_TARGET"
     fi
 fi

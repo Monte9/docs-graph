@@ -95,9 +95,9 @@ For local dev, mount **THIS repo folder** (`~/Projects/docs-graph`) in Cowork. T
 - Python 3 (no pip deps — `build.py` is stdlib only)
 - A folder of your real docs somewhere on disk (default `~/docs`); optionally a `~/data` folder for research data
 
-### One-time setup
+### Session setup
 
-From the repo root:
+From the repo root, run this at the start of every Cowork dev session (and whenever you change which folder you're developing against):
 
 ```bash
 ./setup.sh                              # docs/ → ~/docs, data/ → ~/data
@@ -105,7 +105,7 @@ From the repo root:
 ./setup.sh ~/other/docs ~/other/data    # both custom
 ```
 
-`setup.sh` symlinks your real `docs/` and `data/` into the repo so you can develop against real content. Both symlinks are gitignored.
+`setup.sh` symlinks your real `docs/` and `data/` into the repo so you can develop against real content. It's idempotent — re-running refreshes the symlinks to the current session's mount path, which matters because Cowork sandbox paths (`/sessions/<session-id>/...`) change between sessions, so yesterday's symlink is typically stale. Both symlinks are gitignored.
 
 ### Initial build
 
