@@ -30,9 +30,10 @@ The authoritative list of competitors to research lives in Notion:
 - No comparative framing against Rosebud. Each doc is a standalone analysis.
 
 **Data integrity**
-- Every factual claim must trace to a numbered entry in the References &
-  Sources section at the bottom of the doc. That section is the single source
-  of truth for URLs. **Do not duplicate the URL list in the frontmatter.** The
+- Every factual claim must be verifiable against the References &
+  Sources section at the bottom of the doc. Do not insert inline citation
+  markers (`[N]`, `[N](url)`, footnotes) in the body text. That section is
+  the single source of truth for URLs. **Do not duplicate the URL list in the frontmatter.** The
   `references:` YAML key is deprecated for competitor docs and must be
   omitted; frontmatter stays minimal (name, date, type, description, optional
   notion_id).
@@ -148,8 +149,9 @@ reader dives into section details. Each `Value` is the one-line summary of
 that dimension; the matching dimension section below expands it with a short
 overview paragraph and 4–8 bullets of specific facts.
 
-References & Sources is a numbered list; every factual claim in the body must
-trace to a URL in this list.
+References & Sources is a numbered list. Every factual claim in the body must
+be verifiable against a URL in this list, but do not insert inline citation
+markers in the body text.
 
 **Snapshot table template**
 
@@ -222,8 +224,8 @@ A competitor doc is ready for merge when:
 - All 20 dimension subsections exist, each with a snapshot-table row, an
   overview paragraph, and 4–8 bullets (or an explicit `unknown` / `not
   confirmed` declaration per the Data integrity rules).
-- Every factual claim traces to a numbered entry in References & Sources.
-  The `references:` frontmatter key is omitted — URLs live in the body
+- Every factual claim must be verifiable against References & Sources
+  (no inline annotations). The `references:` frontmatter key is omitted — URLs live in the body
   section only.
 - Frontmatter contains `name`, `date`, `type: research`, `description`, and
   optionally `notion_id`. Nothing else.
