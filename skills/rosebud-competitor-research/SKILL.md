@@ -33,7 +33,7 @@ Write the competitor writeup to:
 data/competitors/<slug>.md
 ```
 
-Frontmatter:
+Frontmatter (keep minimal — do NOT add a `references:` key; URLs live in the body's "References & Sources" section only):
 
 ```yaml
 ---
@@ -41,15 +41,13 @@ name: <Competitor Display Name>
 date: <YYYY-MM-DD>
 type: research
 description: <one-sentence summary>
-references:
-  - <any notion URLs or external sources>
 # Optional — only if a corresponding Notion page already exists and the user
 # wants to enable future sync. Leave out otherwise.
 # notion_id: <notion-page-id>
 ---
 ```
 
-Follow the Recommended Doc Structure section in the reference doc for the body. Every factual claim must trace to a URL in the References section.
+Follow the Recommended Doc Structure section in the reference doc for the body. Every factual claim must trace to a numbered entry in the "References & Sources" section at the bottom of the body.
 
 ## Step 5: Rebuild the graph
 

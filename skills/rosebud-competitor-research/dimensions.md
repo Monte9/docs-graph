@@ -30,10 +30,28 @@ The authoritative list of competitors to research lives in Notion:
 - No comparative framing against Rosebud. Each doc is a standalone analysis.
 
 **Data integrity**
-- Every factual claim must trace to a URL in the References section.
+- Every factual claim must trace to a numbered entry in the References &
+  Sources section at the bottom of the doc. That section is the single source
+  of truth for URLs. **Do not duplicate the URL list in the frontmatter.** The
+  `references:` YAML key is deprecated for competitor docs and must be
+  omitted; frontmatter stays minimal (name, date, type, description, optional
+  notion_id).
 - Pricing must come from the product's site or a verified aggregator
   (Capterra, G2, SaaSWorthy).
-- Review quotes must be verbatim from the source. Do not reword.
+- Review quotes must be verbatim from the source. Do not reword. Customer
+  Pain Points (#16) requires **at least 3 verbatim practitioner quotes** from
+  Capterra, G2, Trustpilot, or Choosing Therapy, each with source attribution
+  and date (or explicit "date not shown" if the site does not expose dates).
+  If fewer than 3 practitioner quotes are retrievable, fall back to verbatim
+  client quotes from the iOS App Store or Google Play, and note the gap.
+- HIPAA claims (dimension #4) require an **attestation source** bullet in the
+  dimension section: self-attested, inherited (named AWS/GCP/Azure BAA),
+  compliance-as-a-service vendor (Compliancy Group, Accountable HQ, Drata,
+  Vanta, Secureframe, etc.), or independently audited by a named third party
+  (SOC 2 Type I/II, HITRUST, ISO 27001, A-LIGN, Schellman). "HIPAA compliant"
+  with no attestation source is not sufficient; write
+  `self-attested; no third-party audit disclosed` when that is what the
+  evidence shows.
 - Use the canonical `field_name` shown on each dimension below; non-canonical
   names (e.g., `hipaa_status` instead of `compliance`) break programmatic
   extraction for comparison charts.
@@ -71,10 +89,15 @@ name: <Competitor Display Name>
 date: <YYYY-MM-DD>
 type: research
 description: <one-sentence summary>
-references:
-  - <any notion URLs or external sources cited in the body>
+# Optional: only if a corresponding Notion page exists and the user wants
+# to enable future sync. Omit when there is no upstream page yet.
+notion_id: <notion-page-id, hex with or without hyphens>
 ---
 ```
+
+Frontmatter stays minimal. Do **not** add a `references:` list — URLs live in
+the "References & Sources" section at the bottom of the body and nowhere
+else. Keeping the URL list in one place prevents the two from drifting.
 
 **Doc structure**
 
@@ -199,8 +222,17 @@ A competitor doc is ready for merge when:
 - All 20 dimension subsections exist, each with a snapshot-table row, an
   overview paragraph, and 4–8 bullets (or an explicit `unknown` / `not
   confirmed` declaration per the Data integrity rules).
-- Every factual claim traces to a numbered entry in References & Sources, and
-  the `references:` frontmatter lists every external URL cited in the body.
+- Every factual claim traces to a numbered entry in References & Sources.
+  The `references:` frontmatter key is omitted — URLs live in the body
+  section only.
+- Frontmatter contains `name`, `date`, `type: research`, `description`, and
+  optionally `notion_id`. Nothing else.
+- Compliance & Security (#4) includes an attestation-source bullet that is
+  explicit about whether HIPAA is self-attested, inherited, vendor-backed,
+  or independently audited.
+- Customer Pain Points (#16) includes at least 3 verbatim quotes with source
+  and date (or `date not shown`), covering at least one pricing/friction
+  signal and one positive-with-implicit-wish signal where available.
 - The Executive Summary paragraph is under 120 words and the snapshot table
   has all 20 canonical `field_name` rows in the order shown above.
 
@@ -318,13 +350,14 @@ SOC 2 and GDPR open institutional buyers; the attestation source (self vs.
 audited) determines how much weight a claim actually carries.
 
 **What to look for**:
-- **HIPAA**: Compliant y/n, BAA availability.
+- **HIPAA**: Compliant y/n, BAA availability and request process.
+- **HIPAA attestation source** (**required bullet** in every doc): Self-attested, inherited (named AWS/GCP/Azure BAA), compliance-as-a-service vendor (Compliancy Group, Accountable HQ, Drata, Vanta, Secureframe, Paubox), or independently audited by a named third party (A-LIGN, Schellman, HITRUST, ISO 27001). If no third-party evidence surfaces, record `self-attested; no third-party audit disclosed` and cite the source URLs searched.
 - **GDPR**: Coverage and data-residency notes.
-- **SOC 2**: Type I or Type II, report date, auditor.
+- **SOC 2**: Type I or Type II, report date, auditor. Record `not disclosed` if absent.
 - **Encryption at rest**: Standard cited (e.g., AES-256).
 - **Encryption in transit**: Standard cited (e.g., TLS 1.2+).
-- **Data residency**: Where client data is stored.
-- **Attestation source**: Self-attested, inherited (e.g., AWS/GCP), or independently audited by a named third party. Record source URL where compliance is claimed.
+- **Data residency**: Where client data is stored. Record `not disclosed` if absent.
+- **Hosting provider**: Named cloud (AWS, GCP, Azure, DigitalOcean) if disclosed — relevant to inherited compliance.
 - **Security/trust page**: URL.
 
 ---
@@ -638,10 +671,14 @@ reveal reception signals that positioning copy alone can't.
 **What to look for**:
 - **Review ratings**: Capterra, G2, Trustpilot, iOS App Store, Google Play.
   Record rating and review count per source.
-- **Practitioner complaints**: At least 3 verbatim quotes from Capterra, G2,
-  Trustpilot, or Choosing Therapy, each with source attribution and date
-  (e.g., "'A tad bit pricey' (Capterra, 2024-03-12)"). Do not paraphrase when
-  the original wording is available.
+- **Practitioner complaints** (**required**: at least 3 verbatim quotes):
+  Capture at least 3 quotes from Capterra, G2, Trustpilot, or Choosing
+  Therapy, each with source attribution and date (e.g., `"A tad bit pricey"
+  (Capterra, 2024-03-12)`). If the review site does not expose per-review
+  dates, write `(Capterra, date not shown)`. Do not paraphrase. If fewer than
+  3 practitioner quotes are retrievable, fall back to verbatim client quotes
+  from iOS App Store or Google Play to reach the 3-quote floor, and note the
+  practitioner-review gap explicitly.
 - **Client complaints**: Verbatim quotes from iOS App Store and Google Play
   reviews, with source attribution and date.
 - **Common themes**: Pricing friction, onboarding difficulty, missing
