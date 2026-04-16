@@ -211,21 +211,23 @@ A competitor doc is ready for merge when:
 Run these pre-research steps before writing any dimension. Together they set
 the sourcing baseline for the whole doc. The 20 dimensions follow below.
 
-1. **Prior report check**: If a prior Content-dimension report exists for this
-   company in Notion, fetch it first and treat its findings as authoritative
-   for the Content dimensions.
-2. **Practitioner subdomain check**: Search for `therapist`, `clinician`,
+Every run is a fresh research pass. Do not reuse or import prior writeups
+(Notion, drafts, older competitor docs) as authoritative — if useful context
+exists elsewhere, still re-verify each fact against the live source and cite
+the live source, not the prior writeup.
+
+1. **Practitioner subdomain check**: Search for `therapist`, `clinician`,
    `provider`, `practice`, or `care` subdomains and landing pages. Many
    competitors run a practitioner product on a separate subdomain from the
    consumer marketing site (e.g., `therapyassist.evolveinc.io`,
    `provider.growtherapy.com`, `organizations.headspace.com/providers`).
-3. **App store check**: Search iOS App Store and Google Play for the product.
+2. **App store check**: Search iOS App Store and Google Play for the product.
    Record ratings, review count, and any practitioner-relevant reviews.
-4. **Review site check**: Search Capterra, G2, Trustpilot, and Choosing
+3. **Review site check**: Search Capterra, G2, Trustpilot, and Choosing
    Therapy for the product. Record ratings and verbatim quotes.
-5. **PubMed/PMC check**: Search for published studies referencing the product
+4. **PubMed/PMC check**: Search for published studies referencing the product
    name. Record any RCTs or peer-reviewed outcomes data for `clinical_evidence_ai`.
-6. **AI safety page check**: Look for a dedicated AI principles, safety, or
+5. **AI safety page check**: Look for a dedicated AI principles, safety, or
    trust page on the competitor's site. Record for `safety`.
 
 ---

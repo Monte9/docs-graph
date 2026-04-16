@@ -43,6 +43,9 @@ type: research
 description: <one-sentence summary>
 references:
   - <any notion URLs or external sources>
+# Optional — only if a corresponding Notion page already exists and the user
+# wants to enable future sync. Leave out otherwise.
+# notion_id: <notion-page-id>
 ---
 ```
 
@@ -64,6 +67,18 @@ Summarize to the user:
 - Path to the new doc: `data/competitors/<slug>.md`
 - Any dimensions where data was unavailable (noted as "unknown" or "N/A")
 - Any follow-ups (e.g., manual product screenshots)
+
+## Done checklist
+
+The skill's deliverable is local-only. A run is considered done when:
+
+1. `data/competitors/<slug>.md` exists and meets the Done check in the reference doc.
+2. `python3 _graph/build.py` has been re-run and the new doc shows up as a node.
+
+**Do not push the doc to Notion as part of this skill.** If the frontmatter
+includes a `notion_id`, the user (or a separate sync skill) may later push
+the doc upstream; this skill does not. If no `notion_id` is present, any
+Notion sync is a manual follow-up and not part of this skill's contract.
 
 ## Incremental runs
 
