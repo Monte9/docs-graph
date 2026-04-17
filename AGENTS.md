@@ -4,9 +4,10 @@ This file is for AI agents working on this repo. If you're a human, see README.m
 
 ## What this is
 
-A Claude Cowork plugin called **docs-graph**. It has three skills:
+A Claude Cowork plugin called **docs-graph**. It has four skills:
 
 - **create-doc** (`skills/create-doc/SKILL.md`) — creates markdown documents with YAML frontmatter in the right format for the graph viewer
+- **create-chart** (`skills/create-chart/SKILL.md`) — creates interactive HTML charts paired with `chart-*.md` docs so they wire into the graph. Codifies the iframe postMessage download contract and the shared visual vocabulary across charts
 - **build-graph** (`skills/build-graph/SKILL.md`) — sets up and rebuilds an interactive HTML graph viewer that visualizes documents and their references
 - **rosebud-competitor-research** (`skills/rosebud-competitor-research/SKILL.md`) — researches competitors following the Rosebud competitive research system. Deliberately Rosebud-specific (mental-health practitioner tools); not intended for general-purpose competitor research
 
@@ -20,6 +21,10 @@ docs-graph/
 ├── skills/
 │   ├── create-doc/
 │   │   └── SKILL.md             # instructions for creating docs
+│   ├── create-chart/
+│   │   ├── SKILL.md             # instructions for creating HTML charts + paired chart-*.md
+│   │   └── templates/
+│   │       └── chart-template.html  # boilerplate with #wrapper, visual vocab, download listener
 │   ├── build-graph/
 │   │   ├── SKILL.md             # instructions for setting up/rebuilding the graph
 │   │   └── scripts/

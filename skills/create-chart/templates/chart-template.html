@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CHART TITLE</title>
+<style>
+  /* ── Reset ───────────────────────────────────────────────── */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  /* ── Shared visual vocabulary ────────────────────────────── */
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+    background: #f4f4f0;
+    color: #2a2a35;
+    overflow: auto;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  #wrapper {
+    width: 100%;
+    max-width: 1200px;
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e6e6dc;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+    padding: 28px 32px 24px 32px;
+  }
+
+  /* ── Header block ────────────────────────────────────────── */
+  #header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 16px;
+  }
+  #title h1 {
+    font-size: 19px;
+    color: #1a1a25;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  #title p {
+    font-size: 12px;
+    color: #8a8a98;
+    margin-top: 3px;
+    max-width: 760px;
+    line-height: 1.5;
+  }
+
+  /* ── Legend pills ────────────────────────────────────────── */
+  #legend {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    font-size: 11px;
+    color: #5a5a68;
+    flex-shrink: 0;
+  }
+  .lg-swatch {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: #f8f8f2;
+    border: 1px solid #eaeae2;
+  }
+  .lg-dot {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .lg-dot.primary { background: #2a2a35; }
+  .lg-dot.muted   { background: #c5c5b8; border: 1px solid #a8a89a; }
+  .lg-dot.none    { background: transparent; border: 1px solid #e6e6dc; }
+
+  /* ── Example content container. Replace with your own. ───── */
+  #content {
+    border: 1px solid #ececE2;
+    border-radius: 8px;
+    padding: 40px;
+    background: #fdfdf9;
+    text-align: center;
+    color: #8a8a98;
+    font-size: 13px;
+  }
+</style>
+</head>
+<body>
+<div id="wrapper">
+  <div id="header">
+    <div id="title">
+      <h1>CHART TITLE · short subtitle</h1>
+      <p>One-to-two sentence description of what this chart shows and how to read it. Keep it tight — the full write-up lives in the paired analysis doc.</p>
+    </div>
+    <div id="legend">
+      <span class="lg-swatch"><span class="lg-dot primary"></span>primary</span>
+      <span class="lg-swatch"><span class="lg-dot muted"></span>muted</span>
+      <span class="lg-swatch"><span class="lg-dot none"></span>none</span>
+    </div>
+  </div>
+
+  <div id="content">
+    <!-- Replace this block with your chart (matrix, scatter, flow, etc.). -->
+    Chart content goes here.
+  </div>
+</div>
+
+<script>
+// ── Iframe download contract ─────────────────────────────────
+// The graph viewer posts { action: 'downloadAsImage' } when the user clicks
+// the download button in the overlay chrome. We snapshot #wrapper to PNG.
+// If you rename the root element, update `getElementById` below to match —
+// otherwise the button will silently fail.
+window.addEventListener('message', function(e) {
+  if (e.data && e.data.action === 'downloadAsImage') {
+    const el = document.getElementById('wrapper');
+    import('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/+esm').then(mod => {
+      const html2canvas = mod.default;
+      html2canvas(el, {
+        backgroundColor: '#ffffff',
+        scale: 2,
+        useCORS: true,
+        logging: false,
+      }).then(canvas => {
+        const a = document.createElement('a');
+        a.download = 'chart.png';  // ← match the chart's filename slug
+        a.href = canvas.toDataURL('image/png');
+        a.click();
+      });
+    });
+  }
+});
+</script>
+</body>
+</html>
