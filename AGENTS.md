@@ -4,12 +4,13 @@ This file is for AI agents working on this repo. If you're a human, see README.m
 
 ## What this is
 
-A Claude Cowork plugin called **docs-graph**. It has four skills:
+A Claude Cowork plugin called **docs-graph**. It has five skills:
 
 - **create-doc** (`skills/create-doc/SKILL.md`) — creates markdown documents with YAML frontmatter in the right format for the graph viewer
 - **create-chart** (`skills/create-chart/SKILL.md`) — creates interactive HTML charts paired with `chart-*.md` docs so they wire into the graph. Codifies the iframe postMessage download contract and the shared visual vocabulary across charts
 - **build-graph** (`skills/build-graph/SKILL.md`) — sets up and rebuilds an interactive HTML graph viewer that visualizes documents and their references
 - **rosebud-competitor-research** (`skills/rosebud-competitor-research/SKILL.md`) — researches competitors following the Rosebud competitive research system. Deliberately Rosebud-specific (mental-health practitioner tools); not intended for general-purpose competitor research
+- **rosebud-competitor-landscape** (`skills/rosebud-competitor-landscape/SKILL.md`) — for a single Rosebud dimension, extract data across all 24 competitors and produce an analysis doc + chart pair. Delegates file creation to create-doc + create-chart; owns data extraction and pattern synthesis. Chart type is a judgment call based on data shape. Used iteratively to build toward a full landscape report
 
 ## Repo structure
 
@@ -30,9 +31,11 @@ docs-graph/
 │   │   └── scripts/
 │   │       ├── build.py         # Python script that scans docs/ and generates graph data
 │   │       └── index.html       # D3.js viewer template (data gets embedded by build.py)
-│   └── rosebud-competitor-research/
-│       ├── SKILL.md             # thin executor for Rosebud competitor research
-│       └── dimensions.md        # reference doc: 19 dimensions, doc structure, writing rules
+│   ├── rosebud-competitor-research/
+│   │   ├── SKILL.md             # thin executor for Rosebud competitor research
+│   │   └── dimensions.md        # reference doc: 19 dimensions, doc structure, writing rules
+│   └── rosebud-competitor-landscape/
+│       └── SKILL.md             # per-dimension analysis+chart across all 24 competitors
 ├── README.md                    # human-facing docs
 ├── AGENTS.md                    # this file
 ├── setup.sh                     # LOCAL DEV ONLY — symlinks ~/docs, ~/data into repo
