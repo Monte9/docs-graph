@@ -35,17 +35,52 @@ The goal is a structured list of `competitor → value(s)` — typically 1-4 att
 
 ## Step 2 — Synthesize (this is the judgment step)
 
-Read the extracted data and look for the shape that's actually there:
+Before looking at chart shapes, write down the **one question** this dimension's chart should answer in plain English. A dimension is a topic (e.g. "access model"); a question is a read (e.g. "can a solo therapist sign up today?"). Without a crisp question, the chart becomes a 24-row data table disguised as a visualization. With one, the chart shape usually picks itself. See the "Anchor on the question first" section in `create-chart/SKILL.md` for the full rationale.
 
-- **Discrete states or tiers** — does the data split into 2-5 natural clusters (audited / self-attested / none; free / per-seat / per-session; heavy / moderate / light)? If yes, a heatmap or tier-coded matrix will read naturally.
-- **Continuous axes** — are there two things varying at once that plot as a scatter (price × target user, ai-usage-intensity × clinical-visibility)?
-- **Count or breadth** — does the dimension reduce to "how much of X" per competitor (library size, feature count)? A bar chart or simple ranked list is clearest.
+Proven examples from this system:
+
+- Compliance → "Who holds third-party-audited HIPAA?" → 4-tier heatmap.
+- Pricing → "How much does it cost to get started?" → log-axis dot strip with segment bands.
+- Access Model → "Can a solo therapist sign up today?" → binary two-column split.
+
+With the question pinned down, read the extracted data and look for the shape that fits:
+
+- **Binary / two-column** — if the question is a yes/no and the secondary texture (why, how much) can live in a hover tooltip. Simplest and most legible.
+- **Discrete states or tiers** — does the data split into 2-5 natural clusters (audited / self-attested / none; free / per-seat / per-session; heavy / moderate / light)? A heatmap or tier-coded matrix reads naturally.
+- **Continuous axes** — are there one or two things varying at once that plot as a scatter or dot strip (price on a log axis, ai-usage × clinical-visibility)?
+- **Count or breadth** — does the dimension reduce to "how much of X" per competitor (library size, feature count)? A bar chart or ranked list is clearest.
 - **Flow / process** — is the dimension actually a sequence or workflow? A process diagram, not a matrix.
 - **Flat / thin signal** — if 20 of 24 competitors have basically the same value, the chart might be a small outlier callout instead of a full matrix. Don't manufacture structure that isn't there.
 - **Named evidence** — which 2-3 specific competitors anchor each cluster? Those names go straight into the key-insight bullets.
 - **Outliers / whitespace** — anyone unusual in a way that's competitively relevant for Rosebud.
 
-The compliance pilot landed on a 4-tier heatmap because the data cleanly bifurcated into audited/self-attested/inherited/none. That pattern fell out of the data; it wasn't imposed. Let each dimension produce its own shape.
+The shape should fall out of the question + data, not get imposed. Compliance landed on a 4-tier heatmap because the data bifurcated into audited/self-attested/inherited/none. Access model landed on a binary split because the question was literally "can they sign up today?" — yes or no. Let each dimension produce its own shape.
+
+**Resist over-encoding.** When the data has many attributes, the instinct is to encode them all (position + color + glyph + band + label). The result reads like a spreadsheet. Pick the single attribute that answers the one question; everything else goes in the hover or the analysis doc.
+
+### When a dimension is composite (multiple charts)
+
+The default is **one chart per dimension**. This keeps the one-question discipline intact and the final report scannable.
+
+A **second chart** is justified only when both of these hold:
+
+1. The second question is **orthogonal** to the first — it can't be collapsed into a hover tooltip or a column on the primary chart.
+2. The second question is **competitively meaningful** — a distinct strategic read, not additional texture.
+
+Examples where a second chart earns its keep:
+
+- **Pricing** — "How much to get started?" (entry-price dot strip) is orthogonal to "Who offers a meaningful free tier?" (9 advertise free, only 2 let you run a real practice for free). Different reads, different implications.
+- **How AI Is Used (#11)** — client-facing AI and back-office AI are structurally different products. One chart per axis is honest; forcing both into one visual loses the distinction.
+- **Customer Pain Points (#16)** — average rating (reception signal) and thematic complaint clustering (product-gap signal) are independent reads that drive different conclusions.
+
+When shipping two charts:
+
+- **Primary**: `<dimension>-landscape.html` — the headline read.
+- **Secondary**: `<dimension>-<question-slug>.html` (e.g. `pricing-free-tier.html`, `ai-capabilities-back-office.html`). Each needs its own `chart-<slug>.md` doc.
+- The **analysis doc** references both and labels which answers which question.
+- The **report doc** dimension section has one image block per chart, in primary-then-secondary order.
+
+If you find yourself reaching for a **third chart**, stop. Three usually means one of two things: the dimension is too broad and should be split, or two of the three questions collapse into each other under closer inspection. Force the discipline; don't ship three.
 
 ## Step 3 — Create the analysis doc
 
@@ -71,9 +106,7 @@ references:
 
 # <Dimension Title> Landscape
 
-## Overview
-
-<1-2 sentence synthesis of the dominant pattern. Name the pattern directly — don't hedge. If the data bifurcates, say so. If it's flat, say that too.>
+<1-2 sentence synthesis of the dominant pattern. Name the pattern directly — don't hedge. If the data splits into two groups, say so. If it's flat, say that too. Do NOT prefix this paragraph with "Overview:" or a "## Overview" header — the dimension title is already the orientation.>
 
 - <Key insight #1, with 2-3 named competitors as evidence>
 - <Key insight #2, with 2-3 named competitors as evidence>
@@ -91,11 +124,31 @@ references:
 <What does the pattern imply? Where's the Rosebud whitespace, if any? Skip this section if nothing substantive surfaced.>
 ```
 
-**Style rules for the overview + bullets:**
+**Style rules for the overview + bullets — follow Start Simple:**
 
-- Overview is 1-2 sentences. If you need three, one of them is filler — delete it.
-- Bullets name specific companies. "Most competitors do X" is weaker than "Healthie, Lyra, and SimplePractice do X; the other 21 don't."
-- Don't pad with "Rosebud positioning" sections unless the implication is sharp. A paragraph that hedges is worse than no paragraph.
+The overview and bullets are the part of the report people actually read. Write them at the speed of the reader, not the speed of the LLM. See `docs/2026-04-09/note-start-simple.md` (Notion: [Start Simple](https://www.notion.so/rosebudjournal/Start-Simple-33d328e8e3f780778745e432e6c21de7)) for the full framing. Applied here:
+
+- **No "Overview:" label.** The dimension heading is the orientation; don't preface the synthesis paragraph with `**Overview**:`, `## Overview`, or similar. Just write the sentence.
+- **Each dimension has one point.** The synthesis paragraph states it in plain English. If you're stating two things, pick one.
+- **Plain words, not LLM words.** Ban: "bifurcates", "structurally", "landscape", "posture", "watershed", "proxy for value", "monetization shape", "GTM", "procurement", "axes", "pervasive but shallow", "uniformly sales-gated", "inventory matched to", "consumer-acquires / enterprise-monetizes", and anything that reads like a McKinsey slide. Say "splits into two", "most", "real audits", "who you sell to decides", "small slice", "all need a sales call".
+- **Shorter is better.** Overview = 1-2 short sentences. Bullets = 1-2 short sentences each with a bolded one-line headline. If you can cut a word, cut it. If you can cut a clause, cut it.
+- **Name the evidence.** Bullets name specific companies. "Most competitors do X" is weaker than "Healthie, Lyra, and SimplePractice do X; the other 21 don't." Keep the list short — three names is usually enough.
+- **3 bullets is the target, 4 is the ceiling.** If you need 5, one is filler — cut or merge.
+- **Don't pad with "Rosebud positioning"** unless the implication is sharp. A paragraph that hedges is worse than no paragraph.
+
+**Bad vs. good phrasing:**
+
+| Avoid (LLM-ish) | Prefer (plain) |
+| --- | --- |
+| "Access mode bifurcates on one practitioner-relevant question" | "10 of 24 let a solo therapist sign up today." |
+| "Enterprise is uniformly sales-gated" | "Enterprise plays all need a sales call." |
+| "Third-party audit is the watershed" | "Real audits are rare." |
+| "Entry price is not a proxy for value" | "Headline price isn't where the value sits." |
+| "GTM dictates posture" | "Who you sell to decides what audits you get." |
+| "Dual-surface is usually consumer-acquires, enterprise-monetizes" | "The consumer app draws users; the enterprise contract pays the bills." |
+| "Marketplace is the rarest model and the heaviest gate" | "Marketplaces treat therapists as supply — heaviest credentialing in the set." |
+
+**The detailed tier breakdown section can stay precise and technical** — that's where numbers, SKU names, auditor names, and full company lists live. Start Simple applies to the overview and bullets, not the underlying matrix.
 
 ## Step 4 — Create the chart
 

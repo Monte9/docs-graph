@@ -118,16 +118,37 @@ All charts in this plugin share a design language so the graph feels coherent. R
 
 The card root (`#wrapper`, `#chart-wrapper`, whatever you name it) should be centered horizontally on the page with some padding so the download snapshot has a clean margin. Keep the chart inside a single card; nested cards fragment the snapshot.
 
+## Anchor on the question first
+
+Before picking a chart type, write down the one question the chart should answer in plain English. Not two questions. Not a data description. One question with a single read — typically a binary, a ranking, a tier call-out, or a cluster whitespace.
+
+Good framings:
+
+- "Can a solo therapist sign up today?" (binary — access model)
+- "Who holds third-party-audited HIPAA?" (tier call-out — compliance)
+- "Which competitors let a practitioner run a real practice for free?" (cluster call-out — pricing)
+
+Bad framings:
+
+- "Show pricing across all competitors" — that's a data description, not a question. It produces a 24-row table disguised as a chart.
+- "Pricing by segment, transparency, and free-tier availability" — three questions. Pick one; the others go in hover tooltips or the analysis doc.
+
+Heuristic: **if a viewer can't answer the question in five seconds from the chart alone, the chart is too busy.** Support text (legend, hover, analysis doc) adds color — the chart itself does one job. When the underlying data has many attributes, resist encoding all of them (color + size + glyph + position + band). Pick the attribute that maps to the one question and let the rest live in the tooltip. Charts visualize a read; they don't map text data.
+
+Iteration tell: if the first pass feels dense, the fix is almost never "more legend" — it's "fewer encodings." Cut attributes until the chart answers the one question at a glance, then put the cut attributes back into the hover.
+
 ## When to use what chart type
 
-Pick the chart type that matches the data shape. The plugin doesn't lock you into a style, but these are the shapes the existing charts prove out:
+Pick the chart shape that matches the question you just wrote down. The plugin doesn't lock you into a style, but these are the shapes the existing charts prove out:
 
+- **Binary split / two-column** (`access-model-landscape.html`) — yes/no, in/out, public/gated. Best when the question is literally a binary and the secondary detail (why, how much) belongs in the hover.
 - **Matrix / heatmap** (`compliance-landscape.html`, `feature-matrix.html`) — rows × columns of discrete categorical states (Y / partial / N, or audited / self / none). Best when there are 3-5 discrete states and the reader needs to scan patterns down columns and across rows.
+- **Dot strip on a single axis** (`pricing-landscape.html`) — one dot per competitor on a shared axis (log price, count, or rank), optionally grouped into bands. Best when one continuous dimension matters and the spread itself is the story.
 - **Positioning scatter** (`competitor-positioning.html`) — 2-axis map with labeled dots. Best when two continuous dimensions matter and you want to show clustering or whitespace.
 - **Process / flow** (`process-flow.html`) — directed steps with arrows. Best for workflows, not comparisons.
 - **Landscape map** (`competitive-landscape-map.html`) — grouped bubbles on a canvas, often with regions shaded. Best for showing "who is where" when neither axis is strictly quantitative.
 
-When in doubt, start with a matrix — it's the most flexible and the easiest to reason about.
+When in doubt, start from the binary. The binary split is the simplest, most legible chart shape — if the question can be forced into a yes/no, a matrix is overkill.
 
 ## Create the files
 
