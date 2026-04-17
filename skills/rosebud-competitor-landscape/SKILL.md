@@ -58,6 +58,8 @@ The shape should fall out of the question + data, not get imposed. Compliance la
 
 **Resist over-encoding.** When the data has many attributes, the instinct is to encode them all (position + color + glyph + band + label). The result reads like a spreadsheet. Pick the single attribute that answers the one question; everything else goes in the hover or the analysis doc.
 
+**Don't default to chip clusters.** A multi-column layout of chips (one column per category, chips inside) is easy to produce and almost always wrong when the data has continuous or quantitative attributes (funding amounts, counts, ratings, years, prices). Chip clusters only earn their keep when the answer is *purely categorical* and the categories themselves are the read (e.g. "which of 5 messaging buckets do they sit in"). If the data has numbers, the chart wants an axis — use a dot strip, bar, or scatter, not chips.
+
 ### When a dimension is composite (multiple charts)
 
 The default is **one chart per dimension**. This keeps the one-question discipline intact and the final report scannable.
@@ -152,12 +154,17 @@ The overview and bullets are the part of the report people actually read. Write 
 
 ## Step 4 — Create the chart
 
-Use the **create-chart** skill. Pass it:
+Use the **create-chart** skill. The handoff contract: **name the chart type explicitly** and pass the decision, not the ambiguity. `create-chart` is a faithful renderer — it builds what you ask for. If you don't name a specific shape, it has no way to push back on a bad choice.
+
+Pass it:
 
 - The dimension slug and title
+- The **named chart type** — one of: `binary two-column`, `matrix/heatmap`, `dot strip` (with axis: linear or log), `positioning scatter` (with both axes named), `bar / ranked list`, `process/flow`, `landscape map`, or `chip cluster` (only if the data is purely categorical — see the "Don't default to chip clusters" rule in step 2)
+- The **one question** the chart answers, stated in plain English (same phrasing you anchored on in step 2)
 - The data you extracted (or the synthesized tier/cluster structure if that's what the chart encodes)
-- Your judgment on chart type (heatmap, scatter, bar, flow, landscape map — whatever the data shape called for in step 2)
 - A brief note on what hover/tooltip should reveal per cell or point
+
+If you can't name the chart type in one of the categories above, go back to step 2 — the shape hasn't fallen out of the data yet.
 
 `create-chart` handles the template, the visual vocabulary, the iframe postMessage download listener, and the paired `chart-<slug>-landscape.md` doc. This skill stays out of chart mechanics — trust the lower-level skill to do its job.
 
