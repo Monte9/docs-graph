@@ -255,6 +255,43 @@ When a commit bumps the version (`fix` or `feat`), also update:
 
 Users who installed via marketplace sync need to re-sync to pick up changes.
 
+## Releasing
+
+Releases are fully automated by `.github/workflows/release.yml`. Every push to `main` triggers it: the workflow builds `docs-graph.zip`, reads the version from `.claude-plugin/plugin.json`, and creates a GitHub release tagged `v<version>` with the zip attached.
+
+The release body is pulled from `.github/releases/v<version>.md`. One file per version, kept in the repo so past release notes stay around for reference. If the file is missing the workflow falls back to a generic body so the release still publishes — but any real version bump should ship with hand-written notes.
+
+### Ship a new version (checklist)
+
+1. Make the changes and stage them
+2. Write `.github/releases/v<next-version>.md` — the body GitHub will show on the release page. Suggested structure:
+   ```markdown
+   ## What's new
+   - ...
+
+   ## Breaking   (omit if no breaking changes)
+   - ...
+
+   ## Install
+   Download `docs-graph.zip` below and upload it in Claude Cowork (Customize → Plugins → Upload), or re-sync the `Monte9/docs-graph` marketplace to pick up the update.
+   ```
+3. Bump version in both `.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json`
+4. Commit everything together (the notes file, the version bump, and the actual change) with a conventional-commit message
+5. Push to `main` — the workflow tags + releases automatically
+
+### Verifying a release
+
+- Workflow run: https://github.com/Monte9/docs-graph/actions
+- Release page: `https://github.com/Monte9/docs-graph/releases/tag/v<version>` (404s until the workflow finishes, usually ~30 seconds after push)
+
+Sanity-check that the release body rendered correctly and `docs-graph.zip` is attached. If the workflow failed, the most common cause is that the tag already exists — delete it locally and remote (`git tag -d v<version> && git push origin :refs/tags/v<version>`) and re-push.
+
+### Release notes style
+
+- Lead with the 3-5 most user-visible changes (what people will actually notice in the viewer or skill behavior), not every commit
+- Put any breaking changes in a dedicated `## Breaking` section — be specific about what users need to migrate
+- Keep the install footer boilerplate; people scan for it
+
 ## Key files to know when making changes
 
 - **Viewer layout/styling**: `skills/build-graph/scripts/index.html` — CSS is in the `<style>` block, layout constants (COL_WIDTH, ROW_SPACING, etc.) are at the top of the `<script>` block, type colors are in the `TYPE_STYLES` object
