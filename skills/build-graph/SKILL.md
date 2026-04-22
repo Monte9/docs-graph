@@ -21,9 +21,9 @@ The graph viewer (`_graph/`) lives at the root of the user's mounted folder. Doc
 │   └── graph.json
 ├── docs/                  ← all documents go here
 │   ├── 2026-03-01/
-│   │   └── synthesis-kickoff.md
+│   │   └── doc-kickoff.md
 │   └── 2026-04-02/
-│       └── analysis-review.md
+│       └── review-proposal.md
 └── data/                  ← research data folders (optional)
     └── product-competitors/
         ├── source1.md
@@ -92,11 +92,12 @@ For a markdown file to appear in the graph, it should have YAML frontmatter:
 name: Human Readable Title
 description: One-sentence summary
 date: YYYY-MM-DD
-type: synthesis
+type: doc
 references:
   - https://example.com/some-page
   - 2026-04-02/other-doc.md
 data: product-competitors
+notion_id: 330328e8e3f78043ba1fed7955d00b11
 ---
 ```
 
@@ -104,12 +105,22 @@ Field details:
 
 - **name** (recommended): Display label in the graph. Falls back to the filename if missing.
 - **date** (recommended): Determines which timeline lane the node appears in. Documents with the same date share a lane.
-- **type** (optional): Drives the node's color and icon. Built-in types: `synthesis` (blue), `analysis` (purple), `comments` (amber), `brief` (teal), `draft` (olive), `note` (gray), `research` (red). Unknown types get default gray.
+- **type** (optional): Drives the node's color and icon. Six recognized types:
+  - `doc` (default, blue) — dated timeline entry. Analysis, synthesis, brief, draft, working notes all collapse here.
+  - `review` (amber) — critique or review of another doc or page. Never synced to Notion.
+  - `guide` (rose) — how-to / process / style. Pinned in the top strip.
+  - `ref` (bronze) — what-is / canonical domain context. Pinned in the top strip, often Notion-synced.
+  - `chart` (teal) — visualization paired with a parent doc via the `chart:` key. Opens in a full-screen overlay.
+  - `research` (red) — auto-generated from each folder under `data/`, not usually set by hand.
+
+  Unknown types get default gray.
 - **description** (optional): Shown in the side panel.
 - **references** (optional): A YAML list of URLs or relative file paths. Each becomes a directed edge. External URLs are rendered as "external" nodes. Relative paths are matched by suffix.
 - **data** (optional): Links the doc to a research folder in `data/<value>/`. Creates an edge to the research node in the graph. The research node shows source file count and facts from `facts.csv`.
+- **notion_id** (optional): 32-char hex ID (or dashed UUID) of the Notion page this doc mirrors. Adds a Notion-sync indicator to the node and a "Synced" section in its panel. Use on `ref` and `guide` when the doc is the local copy of a Notion page; never on `review`.
+- **chart** (required on `type: chart`): Filename of the HTML chart in the same date folder (e.g. `chart: competitive-landscape.html`).
 
-Files without frontmatter are still included as type `note`.
+Files without frontmatter are still included as type `doc`.
 
 ## Multi-project support
 
@@ -119,9 +130,9 @@ The viewer handles two layouts automatically:
 ```
 docs/
 ├── 2026-03-01/
-│   └── synthesis-kickoff.md
+│   └── doc-kickoff.md
 └── 2026-04-02/
-    └── analysis-review.md
+    └── review-proposal.md
 ```
 
 **Multi-project** (project folders containing date folders):
@@ -129,10 +140,10 @@ docs/
 docs/
 ├── project-alpha/
 │   └── 2026-03-01/
-│       └── brief-alpha-kickoff.md
+│       └── doc-alpha-kickoff.md
 └── project-beta/
     └── 2026-03-15/
-        └── analysis-beta-audit.md
+        └── doc-beta-audit.md
 ```
 
 ## Customization

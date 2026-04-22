@@ -236,7 +236,7 @@ def scan_folder(root_path):
             node = {
                 'id': node_id,
                 'name': meta.get('name', fname.replace('.md', '')),
-                'type': meta.get('type', 'note'),
+                'type': meta.get('type', 'doc'),
                 'description': meta.get('description', ''),
                 'date': meta.get('date', ''),
                 'project': project,
@@ -247,6 +247,10 @@ def scan_folder(root_path):
             # Pass through chart path for chart-type docs
             if meta.get('chart'):
                 node['chart'] = meta['chart']
+            # Pass through notion_id — indicates this doc is synced to a
+            # canonical Notion page (vs. just linking to one).
+            if meta.get('notion_id'):
+                node['notion_id'] = str(meta['notion_id']).strip()
             nodes.append(node)
 
             if project not in projects:

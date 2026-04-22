@@ -23,14 +23,29 @@ jobs:
         id: version
         run: echo "version=$(jq -r .version .claude-plugin/plugin.json)" >> $GITHUB_OUTPUT
 
+      - name: Prepare release notes
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          # Per-version release notes live in .github/releases/v<version>.md.
+          # If the file is missing (e.g. a version bump without hand-written
+          # notes), fall back to a minimal generic body so the release still
+          # publishes.
+          NOTES_FILE=".github/releases/v${VERSION}.md"
+          if [ ! -f "$NOTES_FILE" ]; then
+            mkdir -p .github/releases
+            cat > "$NOTES_FILE" <<EOF
+          docs-graph v${VERSION}
+
+          Download \`docs-graph.zip\` and upload it in Claude Cowork (Customize → Plugins → Upload).
+          EOF
+          fi
+
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.version.outputs.version }}
           name: v${{ steps.version.outputs.version }}
-          body: |
-            docs-graph v${{ steps.version.outputs.version }}
-
-            Download `docs-graph.zip` and upload it in Claude Cowork (Customize → Plugins → Upload).
+          body_path: .github/releases/v${{ steps.version.outputs.version }}.md
           files: docs-graph.zip
           make_latest: true

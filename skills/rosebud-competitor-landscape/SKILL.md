@@ -99,7 +99,7 @@ The doc shape is prescriptive — this part stays stable across dimensions so th
 name: <Dimension Title> Landscape
 description: <one-line summary of what this landscape shows>
 date: <YYYY-MM-DD>
-type: analysis
+type: doc
 chart: <dimension-slug>-landscape.html
 data: competitors
 references:
@@ -128,7 +128,7 @@ references:
 
 **Style rules for the overview + bullets — follow Start Simple:**
 
-The overview and bullets are the part of the report people actually read. Write them at the speed of the reader, not the speed of the LLM. See `docs/2026-04-09/note-start-simple.md` (Notion: [Start Simple](https://www.notion.so/rosebudjournal/Start-Simple-33d328e8e3f780778745e432e6c21de7)) for the full framing. Applied here:
+The overview and bullets are the part of the report people actually read. Write them at the speed of the reader, not the speed of the LLM. See `docs/2026-04-09/guide-start-simple.md` and `docs/2026-04-22/guide-tone-and-style.md` (Notion: [Start Simple](https://www.notion.so/rosebudjournal/Start-Simple-33d328e8e3f780778745e432e6c21de7)) for the full framing. Applied here:
 
 - **No "Overview:" label.** The dimension heading is the orientation; don't preface the synthesis paragraph with `**Overview**:`, `## Overview`, or similar. Just write the sentence.
 - **Each dimension has one point.** The synthesis paragraph states it in plain English. If you're stating two things, pick one.
@@ -191,7 +191,7 @@ Once each of the 20 dimensions has its own analysis + chart pair, the full repor
 - **Repeat-outlier competitors** — same 2-3 names surfacing as outliers across many dimensions usually means they're a distinct strategic cluster worth naming.
 - **Flat dimensions** — if a dimension produced a thin chart and a one-bullet analysis, consider merging it into an adjacent dimension in the final report rather than giving it its own section.
 
-A cross-dimension synthesis doc (`type: synthesis`) can reference all 20 analysis docs once they exist. That's where the "whole report" comes together.
+A cross-dimension synthesis doc (`type: doc`) can reference all 20 analysis docs once they exist. That's where the "whole report" comes together.
 
 ## References
 

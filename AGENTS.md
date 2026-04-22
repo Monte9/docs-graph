@@ -55,9 +55,9 @@ When a user installs this plugin and mounts a folder, the expected layout is:
 │   └── graph.json
 ├── docs/                  ← all documents go in here
 │   ├── 2026-03-01/
-│   │   └── synthesis-kickoff.md
+│   │   └── doc-kickoff.md
 │   └── 2026-04-02/
-│       └── analysis-review.md
+│       └── review-proposal.md
 └── data/                  ← research data folders (optional)
     └── product-competitors/
         ├── source1.md
@@ -69,7 +69,7 @@ When a user installs this plugin and mounts a folder, the expected layout is:
 
 ## How the graph viewer works
 
-`build.py` walks `docs/`, parses YAML frontmatter (name, date, type, references, data), and embeds the resulting JSON into `index.html` between `// __GRAPH_DATA_START__` and `// __GRAPH_DATA_END__` markers. It also scans `data/` for research folders — each subfolder becomes a `research` node that counts its source `.md` files and `facts.csv` rows. The HTML file uses D3.js to render a horizontal timeline with nodes per document and edges per reference.
+`build.py` walks `docs/`, parses YAML frontmatter (name, date, type, description, references, data, notion_id, chart), and embeds the resulting JSON into `index.html` between `// __GRAPH_DATA_START__` and `// __GRAPH_DATA_END__` markers. It also scans `data/` for research folders — each subfolder becomes a `research` node that counts its source `.md` files and `facts.csv` rows. The HTML file uses D3.js to render a horizontal timeline with nodes per document and edges per reference.
 
 The viewer is entirely self-contained — one HTML file, no server, no build tools. It persists the open side panel via URL hash, so refreshing the page retains the current panel.
 
@@ -81,18 +81,29 @@ Every markdown doc should start with:
 ---
 name: Title
 date: YYYY-MM-DD
-type: synthesis|analysis|comments|brief|draft|note|research
+type: doc|review|guide|ref|chart|research
 description: One-sentence summary
 references:
   - https://external-url.com
   - YYYY-MM-DD/other-doc.md
 data: folder-name
+notion_id: 32-char-hex-id
+chart: chart-filename.html
 ---
 ```
 
 `build.py` uses a simple line-based YAML parser (no PyYAML dependency). Keep frontmatter flat — no nested objects.
 
-The `data` field is optional — it links a doc to a research folder in `data/<value>/`, creating an edge to the corresponding research node in the graph. The `research` type is automatically assigned to nodes created from `data/` folders.
+Type semantics:
+
+- `doc` (default) — dated timeline entry. Catches analysis, synthesis, brief, draft, working notes.
+- `review` — critique or review of another doc/page. Never gets a `notion_id`.
+- `guide` — how-to / process / style. Pinned in the top strip.
+- `ref` — canonical domain context. Pinned in the top strip, often Notion-synced.
+- `chart` — visualization paired with a parent doc via the `chart:` field. Opens in a full-screen overlay.
+- `research` — auto-assigned to nodes created from `data/<folder>/`; not usually set by hand.
+
+The `data` field is optional — it links a doc to a research folder in `data/<value>/`, creating an edge to the corresponding research node in the graph. The `notion_id` field (32-char hex or dashed UUID) marks a `ref` or `guide` as synced to a Notion page and adds a sync indicator to the node. The `chart` field is required on `type: chart` and names the co-located HTML file.
 
 ## Local development
 
@@ -146,9 +157,13 @@ docs-graph/                      ← mount this folder in Cowork
 │   │       ├── build.py         ← template
 │   │       └── index.html       ← template
 │   ├── create-doc/SKILL.md
-│   └── rosebud-competitor-research/
-│       ├── SKILL.md
-│       └── dimensions.md
+│   ├── create-chart/
+│   │   ├── SKILL.md
+│   │   └── templates/chart-template.html
+│   ├── rosebud-competitor-research/
+│   │   ├── SKILL.md
+│   │   └── dimensions.md
+│   └── rosebud-competitor-landscape/SKILL.md
 └── ...
 ```
 
@@ -223,7 +238,7 @@ Types:
 - `refactor` — code restructuring (no version bump)
 - `style` — formatting, whitespace (no version bump)
 
-Scopes: `build-graph`, `create-doc`, `viewer`, `build`, `ci`
+Scopes: `build-graph`, `create-doc`, `create-chart`, `rosebud-research`, `rosebud-landscape`, `viewer`, `build`, `ci`
 
 Examples:
 ```

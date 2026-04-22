@@ -45,9 +45,9 @@ your-folder/
 ├── _graph/           ← the viewer lives here (auto-generated)
 ├── docs/             ← your documents go here
 │   ├── 2026-03-01/
-│   │   └── synthesis-kickoff.md
+│   │   └── doc-kickoff.md
 │   └── 2026-04-10/
-│       └── analysis-review.md
+│       └── review-proposal.md
 └── data/             ← optional research data folders
     └── product-research/
         ├── source1.md
@@ -62,7 +62,7 @@ Each markdown file starts with a metadata block:
 ---
 name: My Document Title
 date: 2026-04-10
-type: synthesis
+type: doc
 description: A one-sentence summary
 references:
   - https://notion.so/some-page
@@ -72,7 +72,15 @@ references:
 Your content here...
 ```
 
-Types: `synthesis`, `analysis`, `comments`, `brief`, `draft`, `note`. References create edges between documents in the graph.
+Types:
+
+- `doc` — default dated timeline entry (analysis, synthesis, brief, draft, working notes)
+- `review` — critique or review of another doc or page
+- `guide` — how-to / process / style; pinned in the top strip
+- `ref` — canonical domain context; pinned in the top strip
+- `chart` — visualization paired with a parent doc via the `chart:` field
+
+References create edges between documents in the graph. Add `notion_id: <32-char-id>` on a `ref` or `guide` to mark it as synced to a Notion page.
 
 ## Packaging
 
