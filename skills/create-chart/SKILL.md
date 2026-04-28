@@ -101,6 +101,15 @@ window.addEventListener('message', function(e) {
 
 The html2canvas target (`#wrapper` above) is whatever DOM element wraps the visible chart content. Use `#wrapper` for card-style charts (matrices, tables); use `#chart-wrapper` or similar for full-bleed scatter/positioning charts. The ID doesn't matter as long as the download handler snapshots the right element.
 
+### Don't override html2canvas defaults unless you have to
+
+Two common "fixes" that usually make things worse:
+
+- **`windowWidth` / `windowHeight`** — force html2canvas to re-run layout in a synthetic viewport. Responsive elements (anything with `width: 100%`, `max-width`, or flex centering) render at sizes different from what you saw in the browser, producing extra whitespace on one side or clipped content on the other. The default (no override) snapshots the bounding rect at real layout — that's what you want.
+- **`overflow: hidden` on the wrapper** — clips rounded corners and `box-shadow` during the snapshot, leaving a 1px sliver of border missing on the export. Constrain the chart's contents instead (e.g. `max-width` on the inner SVG); the wrapper itself should let its natural bounds extend.
+
+If the export is cut off on one side or has unexpected whitespace, the fix is usually in the layout, not in html2canvas options. Check that the wrapper sits comfortably inside the iframe at real layout (see "Wrapper sizing" below) before reaching for overrides.
+
 ## The shared visual vocabulary
 
 All charts in this plugin share a design language so the graph feels coherent. Reuse these tokens unless you have a specific reason to deviate:
@@ -116,7 +125,19 @@ All charts in this plugin share a design language so the graph feels coherent. R
 - **Swatch rounded pills**: `padding: 3px 8px; border-radius: 999px; background: #f8f8f2; border: 1px solid #eaeae2;`
 - **Legend keys** as 11-13px circles (`width: 11px; height: 11px; border-radius: 50%`)
 
-The card root (`#wrapper`, `#chart-wrapper`, whatever you name it) should be centered horizontally on the page with some padding so the download snapshot has a clean margin. Keep the chart inside a single card; nested cards fragment the snapshot.
+### Wrapper sizing and centering
+
+The card root (`#wrapper`, `#chart-wrapper`, whatever you name it) should:
+
+- Have a **conservative `max-width`** — 800–900px is safer than 1200px. The graph viewer's chart-overlay iframe varies; smaller wrappers center reliably regardless. Avoid `width: 100vw`-class sizing.
+- Sit in a **body that flex-centers both axes** — `display: flex; align-items: center; justify-content: center` on `body` keeps the wrapper off the top edge of the iframe.
+- Stay as a **single card, no nesting** — nested cards fragment the snapshot output.
+
+If the chart is visually centered, the **title, subtitle, and footer should be `text-align: center`** to match. Left-aligned headers above a centered visual reads asymmetric.
+
+### Color does double duty
+
+A single fill color can encode two pieces of information at once. In the Client Loop Funnel: gray = pool *and* "no side", bronze = stage 2 *and* practitioner-side, teal = stage 3 *and* client-side. One color per category, two readings, no separate legend row needed.
 
 ## Anchor on the question first
 
@@ -137,6 +158,12 @@ Heuristic: **if a viewer can't answer the question in five seconds from the char
 
 Iteration tell: if the first pass feels dense, the fix is almost never "more legend" — it's "fewer encodings." Cut attributes until the chart answers the one question at a glance, then put the cut attributes back into the hover.
 
+### Visual encoding budget
+
+Once the question is named, set a budget per visual element: **three lines max** — a small tag, a big number, a short caption. If a fourth line wants in (the question, the interpretation, the reading rule), that text belongs in the paired chart-doc, not in the chart itself. The chart's shape carries the framing; the chart-doc carries the reading.
+
+Tell-tale sign of a blown budget: the chart starts to look like an infographic — text-heavy stages with borders explaining their own meaning. Strip text, lean on color, position, and size.
+
 ## When to use what chart type
 
 Pick the chart shape that matches the question you just wrote down. The plugin doesn't lock you into a style, but these are the shapes the existing charts prove out:
@@ -147,8 +174,21 @@ Pick the chart shape that matches the question you just wrote down. The plugin d
 - **Positioning scatter** (`competitor-positioning.html`) — 2-axis map with labeled dots. Best when two continuous dimensions matter and you want to show clustering or whitespace.
 - **Process / flow** (`process-flow.html`) — directed steps with arrows. Best for workflows, not comparisons.
 - **Landscape map** (`competitive-landscape-map.html`) — grouped bubbles on a canvas, often with regions shaded. Best for showing "who is where" when neither axis is strictly quantitative.
+- **Funnel** (`client-loop-funnel.html`) — stacked descending shapes (typically trapezoids) showing stages narrowing through a process. Best when the question is "where does the flow leak?" and each stage maps to a measurable metric. The narrowing shape is the read; specific values can be `TBD` placeholders until data lands.
 
 When in doubt, start from the binary. The binary split is the simplest, most legible chart shape — if the question can be forced into a yes/no, a matrix is overkill.
+
+## SVG design gotchas
+
+Two things to watch for when the chart uses SVG polygons (funnels, wedges, stacked trapezoids):
+
+**Text in tapered shapes.** SVG text is *not* clipped by polygon boundaries. If you center text inside a trapezoid that narrows toward one end, text positioned near the narrow end will extend past the polygon edges into the white background. With white text on a saturated fill, the part outside the polygon becomes white-on-white and disappears — making it look like the text is being clipped. Three ways to handle it:
+
+- Widen the narrow edge until it can fit the longest caption.
+- Position the text higher in the shape where the polygon is wider.
+- Place labels outside the shape entirely (above, below, or to the side).
+
+**Polygon edge inset.** Leave 20–30px of breathing room between your polygon coordinates and the SVG viewBox edges. Tight-to-edge polygons can clip at narrow render sizes due to drop shadows, anti-aliasing, or rounding errors during scale. If `viewBox="0 0 700 360"`, run polygons from x=20 to x=680, not 0 to 700. Cheap insurance.
 
 ## Create the files
 
